@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🜍 Nemos Alchemie</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a12;
+  color: #c9b896;
+  font-family: Georgia, serif;
+  min-height: 100vh;
+  overflow: hidden;
+}
+#start {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #0a0a12 0%, #1a1a2e 100%);
+  z-index: 100;
+}
+#start h1 {
+  font-size: 4em;
+  margin-bottom: 0.3em;
+  text-shadow: 0 0 30px rgba(201, 184, 150, 0.3);
+}
+#start input {
+  background: rgba(201, 184, 150, 0.1);
+  border: 1px solid rgba(201, 184, 150, 0.3);
+  color: #c9b896;
+  font-size: 1.2em;
+  padding: 0.5em 1em;
+  text-align: center;
+  margin-bottom: 1em;
+  border-radius: 4px;
+  width: 200px;
+}
+#start button {
+  background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+  border: 1px solid rgba(201, 184, 150, 0.4);
+  color: #c9b896;
+  font-size: 1.2em;
+  padding: 0.6em 2em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+#start button:hover {
+  background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4e 100%);
+  border-color: rgba(201, 184, 150, 0.7);
+  box-shadow: 0 0 20px rgba(201, 184, 150, 0.2);
+}
+#game {
+  display: none;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+canvas {
+  display: block;
+}
+#hud {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 1.1em;
+}
+#hud .name { font-size: 1.4em; margin-bottom: 0.3em; }
+#hud .level { color: #9b59b6; }
+#hud .symbols { color: #4ecdc4; }
+#grimoire-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(42, 42, 74, 0.8);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  color: #c9b896;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+}
+#grimoire {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 18, 0.95);
+  z-index: 50;
+  padding: 2em;
+  overflow-y: auto;
+}
+#grimoire h2 {
+  font-size: 2em;
+  margin-bottom: 1em;
+  text-align: center;
+}
+#grimoire-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1em;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.symbol-card {
+  background: rgba(42, 42, 74, 0.6);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+  padding: 1em;
+  text-align: center;
+  border-radius: 4px;
+}
+.symbol-card .glyph { font-size: 2em; }
+.symbol-card .name { color: #9b59b6; margin: 0.3em 0; }
+.symbol-card .desc { font-size: 0.85em; color: #8a8a9a; }
+#close-grimoire {
+  display: block;
+  margin: 2em auto 0;
+  background: rgba(155, 89, 182, 0.2);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  color: #c9b896;
+  padding: 0.5em 2em;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+}
+#recipe-log {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(42, 42, 74, 0.9);
+  border: 1px solid rgba(78, 205, 196, 0.5);
+  padding: 0.5em 1.5em;
+  border-radius: 4px;
+  font-size: 0.95em;
+  color: #4ecdc4;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 40;
+}
+#recipe-log.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="start">
+  <h1>🜍</h1>
+  <input type="text" id="player-name" placeholder="Dein Name" value="Alchemist">
+  <button onclick="startGame()">Betrete die Alchemie</button>
+</div>
+
+<div id="game">
+  <canvas id="canvas"></canvas>
+  <div id="hud">
+    <div class="name" id="hud-name">Alchemist</div>
+    <div class="level">Level: <span id="hud-level">1</span></div>
+    <div class="symbols">Symbole: <span id="hud-symbols">0</span></div>
+  </div>
+  <button id="grimoire-btn" onclick="toggleGrimoire()">📖 Grimoire</button>
+  <button id="hint-btn" onclick="showHint()" style="position:fixed;top:60px;right:20px;background:rgba(241,196,79,0.2);border:1px solid rgba(241,196,79,0.5);color:#f1c40f;padding:0.4em 0.8em;cursor:pointer;border-radius:4px;font-family:Georgia,serif;">💡 Tipp</button>
+  <div id="recipe-log"></div>
+</div>
+
+<div id="grimoire">
+  <h2>📖 Grimoire</h2>
+  <div id="grimoire-grid"></div>
+  <button id="close-grimoire" onclick="toggleGrimoire()">Schliessen</button>
+</div>
+
+<script>
+// === SYMBOLS ===
+const SYMBOLS = [
+  { id: 'ignis',   name: 'Ignis',   glyph: '🜂', color: '#ff6b35', desc: 'Feuer — Transformation', x: 0.15, y: 0.25 },
+  { id: 'aqua',    name: 'Aqua',    glyph: '🜄', color: '#4ecdc4', desc: 'Wasser — Auflösung', x: 0.85, y: 0.25 },
+  { id: 'terra',   name: 'Terra',   glyph: '🜃', color: '#95a5a6', desc: 'Erde — Stabilität', x: 0.15, y: 0.75 },
+  { id: 'aether',  name: 'Aether',  glyph: '🜁', color: '#9b59b6', desc: 'Äther — Geist', x: 0.85, y: 0.75 },
+  { id: 'vita',    name: 'Vita',    glyph: '🜈', color: '#2ecc71', desc: 'Leben — Wachstum', x: 0.5, y: 0.15 },
+  { id: 'lux',     name: 'Lux',     glyph: '☀️', color: '#f1c40f', desc: 'Licht — Erleuchtung', x: 0.5, y: 0.85 },
+  { id: 'nox',     name: 'Nox',     glyph: '🌙', color: '#34495e', desc: 'Nacht — Ruhe', x: 0.3, y: 0.5 },
+  { id: 'tempestas',name:'Tempestas',glyph:'⛈️', color: '#3498db', desc: 'Sturm — Wandel', x: 0.7, y: 0.5 },
+];
+
+const RECIPES = [
+  { ingredients: ['ignis', 'aqua'],     result: 'vita',      desc: 'Dampf des Lebens!' },
+  { ingredients: ['terra', 'aqua'],     result: 'ignis',    desc: 'Schlamm entzündet sich!' },
+  { ingredients: ['aether', 'ignis'],   result: 'terra',    desc: 'Geist manifestiert sich!' },
+  { ingredients: ['vita', 'terra'],     result: 'aether',   desc: 'Leben erblüht!' },
+  { ingredients: ['lux', 'nox'],         result: 'aether',   desc: 'Licht und Nacht erzeugen Äther!' },
+  { ingredients: ['ignis', 'terra'],    result: 'tempestas', desc: 'Feuer und Erde erschaffen Sturm!' },
+  { ingredients: ['aqua', 'lux'],        result: 'vita',     desc: 'Erleuchtetes Wasser gibt Leben!' },
+  { ingredients: ['nox', 'tempestas'],  result: 'terra',     desc: 'Sturm in der Nacht formt Erde!' },
+  { ingredients: ['vita', 'lux'],       result: 'ignis',    desc: 'Leben im Licht wird zu purem Feuer!' },
+  { ingredients: ['aether', 'nox'],      result: 'aqua',     desc: 'Äther der Nacht wird zu Wasser!' },
+];
+
+// === STATE ===
+const state = {
+  name: 'Alchemist',
+  level: 1,
+  xp: 0,
+  xpToNext: 10,
+  collected: [],
+  discoveredRecipes: [],
+  selected: null,
+  seed: Date.now()
+};
+
+function seededRandom() {
+  const x = Math.sin(state.seed++) * 10000;
+  return x - Math.floor(x);
+}
+
+function save() {
+  localStorage.setItem('nemos_alchemie_save', JSON.stringify(state));
+}
+
+function load() {
+  try {
+    const s = localStorage.getItem('nemos_alchemie_save');
+    if (s) {
+      const parsed = JSON.parse(s);
+      Object.assign(state, parsed);
+    }
+  } catch(e) {}
+}
+
+// === GAME ===
+let canvas, ctx, animId;
+
+function startGame() {
+  const name = document.getElementById('player-name').value.trim() || 'Alchemist';
+  state.name = name;
+  save();
+
+  document.getElementById('start').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+  document.getElementById('hud-name').textContent = state.name;
+
+  canvas = document.getElementById('canvas');
+  ctx = canvas.getContext('2d');
+  resize();
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('click', onCanvasClick);
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+
+  load();
+  updateHUD();
+  renderGrimoire();
+  loop();
+}
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function loop() {
+  update();
+  draw();
+  animId = requestAnimationFrame(loop);
+}
+
+function update() {
+  // subtle floating animation for symbols
+  const time = Date.now() * 0.001;
+  SYMBOLS.forEach((s, i) => {
+    s.displayY = s.y + Math.sin(time + i) * 0.02;
+  });
+}
+
+function draw() {
+  ctx.fillStyle = '#0a0a12';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // draw grid pattern
+  ctx.strokeStyle = 'rgba(155, 89, 182, 0.1)';
+  ctx.lineWidth = 1;
+  const gridSize = 50;
+  for (let x = 0; x < canvas.width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  // draw symbols
+  SYMBOLS.forEach(s => {
+    const x = s.x * canvas.width;
+    const y = s.displayY * canvas.height;
+    const collected = state.collected.includes(s.id);
+
+    ctx.save();
+    ctx.font = '48px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (collected) {
+      // glow effect
+      ctx.shadowColor = s.color;
+      ctx.shadowBlur = 20;
+    } else {
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.3;
+    }
+
+    ctx.fillStyle = collected ? s.color : '#555';
+    ctx.fillText(s.glyph, x, y);
+    ctx.restore();
+
+    // label
+    ctx.fillStyle = collected ? '#c9b896' : '#555';
+    ctx.font = '14px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.name, x, y + 40);
+  });
+
+  // draw selection line
+  if (state.selected) {
+    const sel = SYMBOLS.find(s => s.id === state.selected);
+    if (sel) {
+      ctx.strokeStyle = sel.color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(sel.x * canvas.width, sel.displayY * canvas.height, 35, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+function onCanvasClick(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  processClick(mx, my);
+}
+
+function onTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const mx = touch.clientX - rect.left;
+  const my = touch.clientY - rect.top;
+  processClick(mx, my);
+}
+
+function processClick(mx, my) {
+  SYMBOLS.forEach(s => {
+    const sx = s.x * canvas.width;
+    const sy = s.displayY * canvas.height;
+    const dist = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
+
+    if (dist < 50) { // Larger hit area for touch
+      handleSymbolClick(s);
+    }
+  });
+}
+
+function handleSymbolClick(s) {
+  if (!state.collected.includes(s.id)) {
+    // collect it
+    state.collected.push(s.id);
+    state.xp += 2;
+    showRecipeLog(`🜍 ${s.glyph} ${s.name} entdeckt! +2 XP`);
+    checkLevelUp();
+    save();
+    updateHUD();
+    renderGrimoire();
+    return;
+  }
+
+  if (state.selected === s.id) {
+    // deselect
+    state.selected = null;
+  } else if (state.selected) {
+    // try recipe
+    const recipe = RECIPES.find(r =>
+      (r.ingredients.includes(state.selected) && r.ingredients.includes(s.id)) ||
+      (r.ingredients[0] === state.selected && r.ingredients[1] === s.id) ||
+      (r.ingredients[1] === state.selected && r.ingredients[0] === s.id)
+    );
+
+    if (recipe) {
+      if (!state.discoveredRecipes.find(r => r.result === recipe.result)) {
+        state.discoveredRecipes.push(recipe);
+        state.xp += 5;
+        showRecipeLog(`✨ ${recipe.desc} Neues Element freigeschaltet! +5 XP`);
+        checkLevelUp();
+      } else {
+        state.xp += 1;
+        showRecipeLog(`🔄 Kombination bekannt. +1 XP`);
+      }
+      save();
+      updateHUD();
+    } else {
+      showRecipeLog('❌ Keine Reaktion...');
+    }
+    state.selected = null;
+  } else {
+    state.selected = s.id;
+    showRecipeLog(`${s.glyph} ${s.name} ausgewählt — wähle ein zweites Symbol`);
+  }
+}
+
+function checkLevelUp() {
+  while (state.xp >= state.xpToNext) {
+    state.xp -= state.xpToNext;
+    state.level++;
+    state.xpToNext = Math.floor(state.xpToNext * 1.5);
+    showRecipeLog(`🎉 Level ${state.level} erreicht!`);
+  }
+}
+
+function showRecipeLog(msg) {
+  const el = document.getElementById('recipe-log');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function updateHUD() {
+  document.getElementById('hud-name').textContent = state.name;
+  document.getElementById('hud-level').textContent = state.level;
+  document.getElementById('hud-symbols').textContent = state.collected.length + '/' + SYMBOLS.length;
+}
+
+function toggleGrimoire() {
+  const el = document.getElementById('grimoire');
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+function renderGrimoire() {
+  const grid = document.getElementById('grimoire-grid');
+  grid.innerHTML = '';
+
+  SYMBOLS.forEach(s => {
+    const collected = state.collected.includes(s.id);
+    const recipe = state.discoveredRecipes.find(r => r.result === s.id);
+
+    const card = document.createElement('div');
+    card.className = 'symbol-card';
+    card.style.opacity = collected ? 1 : 0.4;
+    card.innerHTML = `
+      <div class="glyph">${s.glyph}</div>
+      <div class="name">${s.name}</div>
+      <div class="desc">${s.desc}</div>
+      ${recipe ? '<div style="color:#4ecdc4;margin-top:0.5em;font-size:0.8em;">✨ Rezept!</div>' : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// === HINT SYSTEM ===
+const HINTS = [
+  { check: () => true,                                    hint: 'Klicke auf Symbole in der Welt um sie zu sammeln.' },
+  { check: () => state.collected.length > 0 && !state.discoveredRecipes.length, hint: 'Du hast Symbole gesammelt. Versuche zwei davon im Grimoire zu kombinieren!' },
+  { check: () => state.collected.includes('ignis') && state.collected.includes('aqua') && !state.discoveredRecipes.find(r => r.result === 'vita'), hint: 'Ignis (Feuer) und Aqua (Wasser) ergeben zusammen etwas Neues...' },
+  { check: () => state.collected.includes('terra') && state.collected.includes('aqua') && !state.discoveredRecipes.find(r => r.result === 'ignis'), hint: 'Terra (Erde) und Wasser... manchmal entzündet sich etwas.' },
+  { check: () => state.collected.includes('aether') && state.collected.includes('ignis') && !state.discoveredRecipes.find(r => r.result === 'terra'), hint: 'Aether (Geist) und Feuer... der Geist manifestiert sich!' },
+  { check: () => state.collected.includes('vita') && state.collected.includes('terra') && !state.discoveredRecipes.find(r => r.result === 'aether'), hint: 'Vita (Leben) und Terra (Erde)... alles kehrt zurück.' },
+  { check: () => state.discoveredRecipes.length > 0, hint: 'Du hast schon ein Rezept entdeckt! Versuche mehr Symbole zu sammeln und zu kombinieren.' },
+];
+
+function showHint() {
+  // Find first matching hint
+  const hint = HINTS.find(h => h.check());
+  if (hint) {
+    showRecipeLog('💡 ' + hint.hint);
+  }
+}
+
+// === INIT ===
+load();
+if (localStorage.getItem('nemos_alchemie_save')) {
+  document.getElementById('player-name').value = state.name;
+}
+</script>
+</body>
+</html>
