@@ -219,7 +219,17 @@ const state = {
   collected: [],
   discoveredRecipes: [],
   selected: null,
-  seed: Date.now()
+  seed: Date.now(),
+  // NEU: Gameplay Loop
+  score: 0,
+  combo: 0,
+  lastCombineTime: 0,
+  timerActive: false,
+  timeLeft: 60,
+  timerInterval: null,
+  dailyTarget: 5,
+  dailyDone: false,
+  highScore: 0,
 };
 
 function seededRandom() {
@@ -382,23 +392,30 @@ function processClick(mx, my) {
 }
 
 function handleSymbolClick(s) {
+  // Auto-start timer when player has enough symbols and no challenge active
+  if (!state.timerActive && state.collected.length >= 3 && !state.dailyDone) {
+    startTimer();
+  }
+
   if (!state.collected.includes(s.id)) {
-    // collect it
     state.collected.push(s.id);
     state.xp += 2;
     showRecipeLog(`🜍 ${s.glyph} ${s.name} entdeckt! +2 XP`);
     checkLevelUp();
+    state.combo = 0;
     save();
     updateHUD();
     renderGrimoire();
     return;
   }
 
+
   if (state.selected === s.id) {
-    // deselect
     state.selected = null;
+    state.combo = 0;
+    showRecipeLog(`${s.glyph} Abgewählt.`);
   } else if (state.selected) {
-    // try recipe
+    const now = Date.now();
     const recipe = RECIPES.find(r =>
       (r.ingredients.includes(state.selected) && r.ingredients.includes(s.id)) ||
       (r.ingredients[0] === state.selected && r.ingredients[1] === s.id) ||
@@ -406,25 +423,64 @@ function handleSymbolClick(s) {
     );
 
     if (recipe) {
-      if (!state.discoveredRecipes.find(r => r.result === recipe.result)) {
+      const isNew = !state.discoveredRecipes.find(r => r.result === recipe.result);
+      const comboBonus = (now - state.lastCombineTime < 3000) ? Math.min(state.combo * 2, 10) : 0;
+
+      if (isNew) {
         state.discoveredRecipes.push(recipe);
-        state.xp += 5;
-        showRecipeLog(`✨ ${recipe.desc} Neues Element freigeschaltet! +5 XP`);
+        state.xp += 5 + comboBonus;
+        state.score += 10 + comboBonus;
+        state.combo++;
+        if (state.timerActive) {
+          state.dailyDone++;
+          if (state.dailyDone >= state.dailyTarget) {
+            clearInterval(state.timerInterval);
+            state.timerActive = false;
+            state.score += 50;
+            showRecipeLog(`🏆 TAGES-CHALLENGE GESCHAFFT! +50 Bonus!`);
+          }
+        }
+        showRecipeLog(`✨ ${recipe.desc} NEU! +${5 + comboBonus} XP ${comboBonus ? `(+${comboBonus} Combo!)` : ''}`);
         checkLevelUp();
       } else {
-        state.xp += 1;
-        showRecipeLog(`🔄 Kombination bekannt. +1 XP`);
+        state.xp += 1 + Math.floor(comboBonus / 2);
+        state.score += 2;
+        showRecipeLog(`🔄 Schon entdeckt. +${1 + Math.floor(comboBonus / 2)} XP`);
       }
-      save();
-      updateHUD();
+      state.lastCombineTime = now;
     } else {
-      showRecipeLog('❌ Keine Reaktion...');
+      showRecipeLog(`❌ Keine Reaktion... ${state.combo > 0 ? 'Combo verloren.' : ''}`);
+      state.combo = 0;
     }
     state.selected = null;
   } else {
     state.selected = s.id;
-    showRecipeLog(`${s.glyph} ${s.name} ausgewählt — wähle ein zweites Symbol`);
+    showRecipeLog(`${s.glyph} ${s.name} aktiviert`);
   }
+
+  if (state.score > state.highScore) {
+    state.highScore = state.score;
+  }
+
+  save();
+  updateHUD();
+}
+
+function startTimer() {
+  state.timerActive = true;
+  state.timeLeft = 60;
+  state.dailyDone = 0;
+  showRecipeLog(`⏱️ 60-Sekunden-Challenge! Finde ${state.dailyTarget} neue Rezepte!`);
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateHUD();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      state.timerActive = false;
+      showRecipeLog(`⏱️ Zeit vorbei! ${state.dailyDone}/${state.dailyTarget} geschafft.`);
+      updateHUD();
+    }
+  }, 1000);
 }
 
 function checkLevelUp() {
@@ -447,6 +503,16 @@ function updateHUD() {
   document.getElementById('hud-name').textContent = state.name;
   document.getElementById('hud-level').textContent = state.level;
   document.getElementById('hud-symbols').textContent = state.collected.length + '/' + SYMBOLS.length;
+  
+  // Score + Combo anzeigen
+  let extra = '';
+  if (state.score > 0) extra += ` | 🏆 ${state.score}`;
+  if (state.combo > 1) extra += ` | ⚡${state.combo}x`;
+  if (state.timerActive) extra += ` | ⏱️ ${state.timeLeft}s`;
+  if (state.highScore > 0) extra += ` | ★ ${state.highScore}`;
+  
+  const symbolsEl = document.getElementById('hud-symbols');
+  symbolsEl.textContent = state.collected.length + '/' + SYMBOLS.length + extra;
 }
 
 function toggleGrimoire() {
