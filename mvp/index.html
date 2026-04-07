@@ -251,6 +251,10 @@ const state = {
   },
   keys: {},
   collectRadius: 60,
+  // PHASE 3: Particles
+  particles: [],
+  // PHASE 3: Spawned symbols (result of recipes)
+  spawnedSymbols: [],
 };
 
 function seededRandom() {
@@ -397,6 +401,15 @@ function update() {
       }
     });
   }
+  
+  // PHASE 3: Particles updaten
+  state.particles = state.particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15; // gravity
+    p.life -= 0.025;
+    return p.life > 0;
+  });
 }
 
 function draw() {
@@ -503,50 +516,60 @@ function draw() {
     ctx.fillText(s.name, x, y + 40);
   });
 
-  // PHASE 2: Avatar zeichnen
+  // PHASE 2: Avatar zeichnen (in Welt-Koordinaten, mit Camera-Offset)
   const avatar = state.avatar;
-  const ax = avatar.x * canvas.width;
-  const ay = avatar.y * canvas.height;
+  const ax = avatar.x - state.camera.x;
+  const ay = avatar.y - state.camera.y;
   
   // Sprint glow intensiver
   const glowIntensity = avatar.isSprinting ? 40 : (avatar.isMoving ? 25 : 15);
   const avatarSize = avatar.isSprinting ? avatar.size * 1.2 : avatar.size;
   
-  // Avatar Glow
+  // Avatar Körper (einfache Figur)
   ctx.save();
   ctx.shadowColor = avatar.isSprinting ? '#fff' : avatar.color;
   ctx.shadowBlur = glowIntensity;
-  ctx.beginPath();
-  ctx.arc(ax, ay, avatarSize, 0, Math.PI * 2);
+  
+  // Körper (Rechteck)
   ctx.fillStyle = avatar.isSprinting ? '#ffa500' : avatar.color;
+  const bodyWidth = avatarSize * 1.4;
+  const bodyHeight = avatarSize * 1.8;
+  ctx.fillRect(ax - bodyWidth/2, ay - bodyHeight/2 + avatarSize*0.3, bodyWidth, bodyHeight);
+  
+  // Kopf (Kreis)
+  ctx.beginPath();
+  ctx.arc(ax, ay - bodyHeight/2 + avatarSize*0.3, avatarSize * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Weißer Kern
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(ax, ay - bodyHeight/2 + avatarSize*0.3, avatarSize * 0.25, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
   
-  // Avatar Inner
-  ctx.beginPath();
-  ctx.arc(ax, ay, avatarSize * 0.6, 0, Math.PI * 2);
-  ctx.fillStyle = '#fff';
-  ctx.fill();
-  
-  // Direction indicator
-  if (avatar.isMoving) {
-    ctx.strokeStyle = avatar.isSprinting ? '#ffa500' : '#fff';
-    ctx.lineWidth = avatar.isSprinting ? 3 : 2;
+  // Richtung-Indikator (Dreieck das in Bewegungsrichtung zeigt)
+  if (avatar.isMoving && (avatar.direction.x !== 0 || avatar.direction.y !== 0)) {
+    const angle = Math.atan2(avatar.direction.y, avatar.direction.x);
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(angle);
+    ctx.fillStyle = avatar.isSprinting ? '#ffa500' : '#fff';
     ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(
-      ax + avatar.direction.x * avatar.size * 1.5,
-      ay + avatar.direction.y * avatar.size * 1.5
-    );
-    ctx.stroke();
+    ctx.moveTo(avatarSize * 1.2, 0);
+    ctx.lineTo(avatarSize * 0.6, -avatarSize * 0.4);
+    ctx.lineTo(avatarSize * 0.6, avatarSize * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
   
-  // Sprint indicator im HUD
+  // Sprint indicator
   if (avatar.isSprinting) {
     ctx.fillStyle = '#ffa500';
     ctx.font = 'bold 12px Courier New';
     ctx.textAlign = 'center';
-    ctx.fillText('⚡ SPRINT', ax, ay - avatar.size - 10);
+    ctx.fillText('⚡ SPRINT', ax, ay - avatar.size * 2.5);
   }
   
   // Avatar Position im HUD anzeigen (Welt-Koordinaten)
@@ -554,7 +577,19 @@ function draw() {
   ctx.font = '12px Courier New';
   ctx.textAlign = 'left';
   ctx.fillText(`Position: ${avatar.x.toFixed(0)}, ${avatar.y.toFixed(0)} | Welt: ${state.world.width}x${state.world.height}`, 10, canvas.height - 10);
-
+  
+  // PHASE 3: Particles zeichnen
+  state.particles.forEach(p => {
+    const px = p.x - state.camera.x;
+    const py = p.y - state.camera.y;
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(px, py, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  
   // draw selection line
   if (state.selected) {
     const sel = SYMBOLS.find(s => s.id === state.selected);
@@ -563,7 +598,7 @@ function draw() {
       ctx.lineWidth = 2;
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
-      ctx.arc(sel.x * canvas.width, sel.displayY * canvas.height, 35, 0, Math.PI * 2);
+      ctx.arc(sel.x - state.camera.x, sel.displayY - state.camera.y, 35, 0, Math.PI * 2);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -637,6 +672,10 @@ function handleSymbolClick(s) {
         state.xp += 5 + comboBonus;
         state.score += 10 + comboBonus;
         state.combo++;
+        
+        // PHASE 3: NEUES SYMBOL IN WELT SPAWNEN!
+        spawnResultSymbol(recipe.result, s);
+        
         if (state.timerActive) {
           state.dailyDone++;
           if (state.dailyDone >= state.dailyTarget) {
@@ -764,6 +803,48 @@ function showHint() {
   if (hint) {
     showRecipeLog('💡 ' + hint.hint);
   }
+}
+
+// PHASE 3: Neues Symbol spawnen wenn Recipe entdeckt wird
+function spawnResultSymbol(resultId, sourceSymbol) {
+  const resultSymbol = SYMBOLS.find(s => s.id === resultId);
+  if (!resultSymbol) return;
+  
+  // Bereits in der Welt?
+  if (state.collected.includes(resultId)) {
+    // Symbol zurücksetzen damit es wieder spawnt
+    state.collected = state.collected.filter(id => id !== resultId);
+  }
+  
+  // Spawn Position: Random im Umkreis um Player
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 150 + Math.random() * 250;
+  const nx = state.avatar.x + Math.cos(angle) * dist;
+  const ny = state.avatar.y + Math.sin(angle) * dist;
+  
+  // Clamp to world
+  const x = Math.max(100, Math.min(state.world.width - 100, nx));
+  const y = Math.max(100, Math.min(state.world.height - 100, ny));
+  
+  // Particles burst!
+  for (let i = 0; i < 25; i++) {
+    state.particles.push({
+      x: x,
+      y: y,
+      vx: (Math.random() - 0.5) * 12,
+      vy: (Math.random() - 0.5) * 12 - 3,
+      life: 1.0,
+      color: resultSymbol.color,
+      size: 4 + Math.random() * 6
+    });
+  }
+  
+  // Neues Symbol in die Welt setzen
+  resultSymbol.x = x;
+  resultSymbol.y = y;
+  
+  // Message
+  showRecipeLog(`🌟 ${resultSymbol.glyph} ${resultSymbol.name} wurde geboren! Finde es in der Welt!`);
 }
 
 // === INIT ===
