@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nemos Alchemie</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #f1c40f, #e74c3c, #9b59b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+    }
+    
+    .subtitle {
+      color: #888;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+    
+    .game-frame {
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    
+    iframe {
+      display: block;
+      width: 800px;
+      height: 600px;
+      border: none;
+    }
+    
+    @media (max-width: 850px) {
+      iframe {
+        width: 100vw;
+        height: 70vh;
+      }
+      h1 { font-size: 1.8rem; }
+    }
+    
+    .footer {
+      margin-top: 20px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .footer a {
+      color: #4ecdc4;
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚗️ Nemos Alchemie</h1>
+  <p class="subtitle">Verwandle Elemente in Gold</p>
+  
+  <div class="game-frame">
+    <iframe src="mvp/index.html"></iframe>
+  </div>
+  
+  <p class="footer">
+    Ein Projekt von <a href="https://github.com/OGNemo" target="_blank">OGNemo</a> 
+    — Offene Quelle auf <a href="https://github.com/OGNemo/nemos-alchemie" target="_blank">GitHub</a>
+  </p>
+</body>
+</html>
