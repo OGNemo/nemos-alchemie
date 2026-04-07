@@ -181,6 +181,12 @@ const SYMBOLS = [
   { id: 'lux',     name: 'Lux',     glyph: '☀️', color: '#f1c40f', desc: 'Licht — Erleuchtung', x: 0.5, y: 0.85 },
   { id: 'nox',     name: 'Nox',     glyph: '🌙', color: '#34495e', desc: 'Nacht — Ruhe', x: 0.3, y: 0.5 },
   { id: 'tempestas',name:'Tempestas',glyph:'⛈️', color: '#3498db', desc: 'Sturm — Wandel', x: 0.7, y: 0.5 },
+  // NEUE SYMBOLE (2026-04-07)
+  { id: 'phoenix', name: 'Phoenix',   glyph: '🔥', color: '#e74c3c', desc: 'Wiedergeburt', x: 0.2, y: 0.4 },
+  { id: 'glacies', name: 'Glacies',   glyph: '❄️', color: '#74b9ff', desc: 'Eis — Stille', x: 0.8, y: 0.4 },
+  { id: 'crystallum', name: 'Crystallum', glyph: '💎', color: '#a29bfe', desc: 'Kristall', x: 0.2, y: 0.6 },
+  { id: 'sol',    name: 'Sol',        glyph: '☀️', color: '#fdcb6e', desc: 'Sonne — Kraft', x: 0.65, y: 0.35 },
+  { id: 'luna',   name: 'Luna',      glyph: '🌙', color: '#dfe6e9', desc: 'Mond — Reflexion', x: 0.65, y: 0.65 },
 ];
 
 const RECIPES = [
@@ -194,6 +200,14 @@ const RECIPES = [
   { ingredients: ['nox', 'tempestas'],  result: 'terra',     desc: 'Sturm in der Nacht formt Erde!' },
   { ingredients: ['vita', 'lux'],       result: 'ignis',    desc: 'Leben im Licht wird zu purem Feuer!' },
   { ingredients: ['aether', 'nox'],      result: 'aqua',     desc: 'Äther der Nacht wird zu Wasser!' },
+  // NEUE REZEPTE (2026-04-07)
+  { ingredients: ['ignis', 'vita'],     result: 'phoenix',   desc: 'Aus Asche geboren!' },
+  { ingredients: ['aqua', 'nox'],        result: 'glacies',   desc: 'Eisige Stille!' },
+  { ingredients: ['terra', 'tempestas'], result: 'crystallum', desc: 'Kristalline Struktur!' },
+  { ingredients: ['phoenix', 'glacies'], result: 'aether',    desc: 'Gegensätze vereint!' },
+  { ingredients: ['lux', 'vita'],       result: 'sol',       desc: 'Die Sonne erwacht!' },
+  { ingredients: ['nox', 'aqua'],       result: 'luna',      desc: 'Der Mond spiegelt sich!' },
+  { ingredients: ['sol', 'luna'],       result: 'aether',    desc: 'Himmelskörper verschmelzen!' },
 ];
 
 // === STATE ===
