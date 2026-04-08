@@ -257,6 +257,20 @@ const state = {
   spawnedSymbols: [],
   // PHASE 3: Animation state for "Hook ERLEBBAR" — Symbole leben
   animTime: 0,
+  // PHASE 3+: Progressive World — mehr Symbole pro Level
+  getMaxSymbols: function(level) {
+    if (level <= 1) return 5;
+    if (level === 2) return 6;
+    if (level === 3) return 8;
+    if (level === 4) return 9;
+    if (level === 5) return 11;
+    return 13; // Level 6+
+  },
+  getWorldSize: function(level) {
+    const base = 1200;
+    const growth = (level - 1) * 200;
+    return Math.min(base + growth, 2200);
+  },
 };
 
 function seededRandom() {
@@ -408,9 +422,12 @@ function update() {
   
   // Symbol floating animation (in Welt-Koordinaten)
   const time = Date.now() * 0.001;
-  SYMBOLS.forEach((s, i) => {
+  // PHASE 6: Progressive World — filter by level
+  const maxSymbols = state.getMaxSymbols(state.level);
+  for (let i = 0; i < maxSymbols; i++) {
+    const s = SYMBOLS[i];
     s.displayY = s.y + Math.sin(time + i) * 5; // 5px floating
-  });
+  }
   
   // PHASE 2: Auto-Collect wenn Avatar ein Symbol berührt
   if (avatar.isMoving) {
@@ -493,8 +510,9 @@ function draw() {
   const scaleX = miniMapW / state.world.width;
   const scaleY = miniMapH / state.world.height;
   
-  // Symbole in Mini-Map
-  SYMBOLS.forEach(s => {
+  // Symbole in Mini-Map (nur aktuelle Level-Symbole)
+  const miniMax = state.getMaxSymbols(state.level);
+  SYMBOLS.slice(0, miniMax).forEach(s => {
     const collected = state.collected.includes(s.id);
     const mx = miniMapX + s.x * scaleX;
     const my = miniMapY + s.y * scaleY;
@@ -515,7 +533,10 @@ function draw() {
   ctx.fill();
 
   // draw symbols (mit Camera-Offset für Welt-Koordinaten)
-  SYMBOLS.forEach(s => {
+  // PHASE 6: Progressive World — nur Symbole des aktuellen Levels
+  const maxSym = state.getMaxSymbols(state.level);
+  const visSym = SYMBOLS.slice(0, maxSym);
+  visSym.forEach(s => {
     const x = s.x - state.camera.x;
     const y = s.displayY - state.camera.y;
     
@@ -784,7 +805,11 @@ function checkLevelUp() {
     state.xp -= state.xpToNext;
     state.level++;
     state.xpToNext = Math.floor(state.xpToNext * 1.5);
-    showRecipeLog(`🎉 Level ${state.level} erreicht!`);
+    // PHASE 6: Welt wächst mit Level
+    const newWorldSize = state.getWorldSize(state.level);
+    state.world.width = newWorldSize;
+    state.world.height = newWorldSize;
+    showRecipeLog(`🎉 Level ${state.level} erreicht! Neue Welt: ${newWorldSize}x${newWorldSize}`);
     save(); // Auto-Save bei Level-Up
   }
 }
