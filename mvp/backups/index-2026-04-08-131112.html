@@ -255,8 +255,6 @@ const state = {
   particles: [],
   // PHASE 3: Spawned symbols (result of recipes)
   spawnedSymbols: [],
-  // PHASE 3: Animation state for "Hook ERLEBBAR" — Symbole leben
-  animTime: 0,
 };
 
 function seededRandom() {
@@ -354,9 +352,6 @@ function loop() {
 function update() {
   // PHASE 2: Avatar Bewegung
   const avatar = state.avatar;
-  
-  // PHASE 3: Animation time — für "Symbole atmen"
-  state.animTime += 0.016; // ~60fps
   avatar.isMoving = false;
   avatar.direction.x = 0;
   avatar.direction.y = 0;
@@ -523,48 +518,30 @@ function draw() {
     if (x < -50 || x > canvas.width + 50 || y < -50 || y > canvas.height + 50) return;
     
     const collected = state.collected.includes(s.id);
-    const time = state.animTime;
-
-    // PHASE 3: Symbole atmen — Animation berechnen
-    const breathPhase = Math.sin(time * 1.5 + s.id.charCodeAt(0) * 0.3); // langsames Atmen
-    const pulsePhase = Math.sin(time * 3 + s.id.charCodeAt(0) * 0.5);   // schnelles Pulsieren
-    const floatY = breathPhase * 4; // 4px Auf/Ab
-    const scale = collected ? 1 + breathPhase * 0.08 : 1; // gesammelte atmen stärker
-    const glow = collected ? 20 + pulsePhase * 10 : 0; // Glow pulsiert
 
     ctx.save();
     ctx.font = '48px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // PHASE 3: Animiertes Zeichnen
-    const drawX = x;
-    const drawY = y + floatY;
-    
-    // Glow / Schatten für gesammelte Symbole
     if (collected) {
       ctx.shadowColor = s.color;
-      ctx.shadowBlur = glow;
+      ctx.shadowBlur = 20;
     } else {
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 0.5;
     }
 
-    // Skalierung anwenden (via transform)
-    ctx.translate(drawX, drawY);
-    ctx.scale(scale, scale);
-    ctx.translate(-drawX, -drawY);
-
     ctx.fillStyle = collected ? s.color : '#555';
-    ctx.fillText(s.glyph, drawX, drawY);
+    ctx.fillText(s.glyph, x, y);
     ctx.restore();
 
-    // Label schwebt leicht
+    // label
     ctx.fillStyle = collected ? '#c9b896' : '#555';
     ctx.font = '14px Georgia';
     ctx.textAlign = 'center';
-    ctx.fillText(s.name, x, y + 40 + floatY);
+    ctx.fillText(s.name, x, y + 40);
   });
 
   // PHASE 2: Avatar zeichnen (in Welt-Koordinaten, mit Camera-Offset)
