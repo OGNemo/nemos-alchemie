@@ -1,89 +1,909 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nemos Alchemie</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      color: #e0e0e0;
-      padding: 20px;
-    }
-    
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      background: linear-gradient(90deg, #f1c40f, #e74c3c, #9b59b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: none;
-    }
-    
-    .subtitle {
-      color: #888;
-      margin-bottom: 30px;
-      font-size: 1.1rem;
-    }
-    
-    .game-frame {
-      border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    }
-    
-    iframe {
-      display: block;
-      width: 800px;
-      height: 600px;
-      border: none;
-    }
-    
-    @media (max-width: 850px) {
-      iframe {
-        width: 100vw;
-        height: 70vh;
-      }
-      h1 { font-size: 1.8rem; }
-    }
-    
-    .footer {
-      margin-top: 20px;
-      color: #666;
-      font-size: 0.9rem;
-    }
-    
-    .footer a {
-      color: #4ecdc4;
-      text-decoration: none;
-    }
-    
-    .footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🜍 Nemos Alchemie</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a12;
+  color: #c9b896;
+  font-family: Georgia, serif;
+  min-height: 100vh;
+  overflow: hidden;
+}
+#start {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #0a0a12 0%, #1a1a2e 100%);
+  z-index: 100;
+}
+#start h1 {
+  font-size: 4em;
+  margin-bottom: 0.3em;
+  text-shadow: 0 0 30px rgba(201, 184, 150, 0.3);
+}
+#start input {
+  background: rgba(201, 184, 150, 0.1);
+  border: 1px solid rgba(201, 184, 150, 0.3);
+  color: #c9b896;
+  font-size: 1.2em;
+  padding: 0.5em 1em;
+  text-align: center;
+  margin-bottom: 1em;
+  border-radius: 4px;
+  width: 200px;
+}
+#start button {
+  background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 100%);
+  border: 1px solid rgba(201, 184, 150, 0.4);
+  color: #c9b896;
+  font-size: 1.2em;
+  padding: 0.6em 2em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+#start button:hover {
+  background: linear-gradient(135deg, #3a3a5a 0%, #2a2a4e 100%);
+  border-color: rgba(201, 184, 150, 0.7);
+  box-shadow: 0 0 20px rgba(201, 184, 150, 0.2);
+}
+#game {
+  display: none;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+canvas {
+  display: block;
+}
+#hud {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 1.1em;
+}
+#hud .name { font-size: 1.4em; margin-bottom: 0.3em; }
+#hud .level { color: #9b59b6; }
+#hud .symbols { color: #4ecdc4; }
+#grimoire-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(42, 42, 74, 0.8);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  color: #c9b896;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+}
+#grimoire {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 18, 0.95);
+  z-index: 50;
+  padding: 2em;
+  overflow-y: auto;
+}
+#grimoire h2 {
+  font-size: 2em;
+  margin-bottom: 1em;
+  text-align: center;
+}
+#grimoire-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1em;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.symbol-card {
+  background: rgba(42, 42, 74, 0.6);
+  border: 1px solid rgba(155, 89, 182, 0.3);
+  padding: 1em;
+  text-align: center;
+  border-radius: 4px;
+}
+.symbol-card .glyph { font-size: 2em; }
+.symbol-card .name { color: #9b59b6; margin: 0.3em 0; }
+.symbol-card .desc { font-size: 0.85em; color: #8a8a9a; }
+#close-grimoire {
+  display: block;
+  margin: 2em auto 0;
+  background: rgba(155, 89, 182, 0.2);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  color: #c9b896;
+  padding: 0.5em 2em;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+}
+#recipe-log {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(42, 42, 74, 0.9);
+  border: 1px solid rgba(78, 205, 196, 0.5);
+  padding: 0.5em 1.5em;
+  border-radius: 4px;
+  font-size: 0.95em;
+  color: #4ecdc4;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 40;
+}
+#recipe-log.show { opacity: 1; }
+</style>
 </head>
 <body>
-  <h1>⚗️ Nemos Alchemie</h1>
-  <p class="subtitle">Verwandle Elemente in Gold</p>
-  
-  <div class="game-frame">
-    <iframe src="mvp/index.html"></iframe>
+
+<div id="start">
+  <h1>🜍</h1>
+  <input type="text" id="player-name" placeholder="Dein Name" value="Alchemist">
+  <button onclick="startGame()">Betrete die Alchemie</button>
+</div>
+
+<div id="game">
+  <canvas id="canvas"></canvas>
+  <div id="hud">
+    <div class="name" id="hud-name">Alchemist</div>
+    <div class="level">Level: <span id="hud-level">1</span></div>
+    <div class="symbols">Symbole: <span id="hud-symbols">0</span></div>
   </div>
+  <button id="grimoire-btn" onclick="toggleGrimoire()">📖 Grimoire</button>
+  <button id="hint-btn" onclick="showHint()" style="position:fixed;top:60px;right:20px;background:rgba(241,196,79,0.2);border:1px solid rgba(241,196,79,0.5);color:#f1c40f;padding:0.4em 0.8em;cursor:pointer;border-radius:4px;font-family:Georgia,serif;">💡 Tipp</button>
+  <div id="recipe-log"></div>
+</div>
+
+<div id="grimoire">
+  <h2>📖 Grimoire</h2>
+  <div id="grimoire-grid"></div>
+  <button id="close-grimoire" onclick="toggleGrimoire()">Schliessen</button>
+</div>
+
+<script>
+// === SYMBOLS ===
+const SYMBOLS = [
+  { id: 'ignis',   name: 'Ignis',   glyph: '🜂', color: '#ff6b35', desc: 'Feuer — Transformation', x: 300, y: 500 },
+  { id: 'aqua',    name: 'Aqua',    glyph: '🜄', color: '#4ecdc4', desc: 'Wasser — Auflösung', x: 1700, y: 500 },
+  { id: 'terra',   name: 'Terra',   glyph: '🜃', color: '#95a5a6', desc: 'Erde — Stabilität', x: 300, y: 1500 },
+  { id: 'aether',  name: 'Aether',  glyph: '🜁', color: '#9b59b6', desc: 'Äther — Geist', x: 1700, y: 1500 },
+  { id: 'vita',    name: 'Vita',    glyph: '🜈', color: '#2ecc71', desc: 'Leben — Wachstum', x: 1000, y: 300 },
+  { id: 'lux',     name: 'Lux',     glyph: '☀️', color: '#f1c40f', desc: 'Licht — Erleuchtung', x: 1000, y: 1700 },
+  { id: 'nox',     name: 'Nox',     glyph: '🌙', color: '#34495e', desc: 'Nacht — Ruhe', x: 600, y: 1000 },
+  { id: 'tempestas',name:'Tempestas',glyph:'⛈️', color: '#3498db', desc: 'Sturm — Wandel', x: 1400, y: 1000 },
+  // NEUE SYMBOLE (2026-04-07)
+  { id: 'phoenix', name: 'Phoenix',   glyph: '🔥', color: '#e74c3c', desc: 'Wiedergeburt', x: 400, y: 800 },
+  { id: 'glacies', name: 'Glacies',   glyph: '❄️', color: '#74b9ff', desc: 'Eis — Stille', x: 1600, y: 800 },
+  { id: 'crystallum', name: 'Crystallum', glyph: '💎', color: '#a29bfe', desc: 'Kristall', x: 400, y: 1200 },
+  { id: 'sol',    name: 'Sol',        glyph: '☀️', color: '#fdcb6e', desc: 'Sonne — Kraft', x: 1300, y: 700 },
+  { id: 'luna',   name: 'Luna',      glyph: '🌙', color: '#dfe6e9', desc: 'Mond — Reflexion', x: 1300, y: 1300 },
+];
+
+const RECIPES = [
+  { ingredients: ['ignis', 'aqua'],     result: 'vita',      desc: 'Dampf des Lebens!' },
+  { ingredients: ['terra', 'aqua'],     result: 'ignis',    desc: 'Schlamm entzündet sich!' },
+  { ingredients: ['aether', 'ignis'],   result: 'terra',    desc: 'Geist manifestiert sich!' },
+  { ingredients: ['vita', 'terra'],     result: 'aether',   desc: 'Leben erblüht!' },
+  { ingredients: ['lux', 'nox'],         result: 'aether',   desc: 'Licht und Nacht erzeugen Äther!' },
+  { ingredients: ['ignis', 'terra'],    result: 'tempestas', desc: 'Feuer und Erde erschaffen Sturm!' },
+  { ingredients: ['aqua', 'lux'],        result: 'vita',     desc: 'Erleuchtetes Wasser gibt Leben!' },
+  { ingredients: ['nox', 'tempestas'],  result: 'terra',     desc: 'Sturm in der Nacht formt Erde!' },
+  { ingredients: ['vita', 'lux'],       result: 'ignis',    desc: 'Leben im Licht wird zu purem Feuer!' },
+  { ingredients: ['aether', 'nox'],      result: 'aqua',     desc: 'Äther der Nacht wird zu Wasser!' },
+  // NEUE REZEPTE (2026-04-07)
+  { ingredients: ['ignis', 'vita'],     result: 'phoenix',   desc: 'Aus Asche geboren!' },
+  { ingredients: ['aqua', 'nox'],        result: 'glacies',   desc: 'Eisige Stille!' },
+  { ingredients: ['terra', 'tempestas'], result: 'crystallum', desc: 'Kristalline Struktur!' },
+  { ingredients: ['phoenix', 'glacies'], result: 'aether',    desc: 'Gegensätze vereint!' },
+  { ingredients: ['lux', 'vita'],       result: 'sol',       desc: 'Die Sonne erwacht!' },
+  { ingredients: ['nox', 'aqua'],       result: 'luna',      desc: 'Der Mond spiegelt sich!' },
+  { ingredients: ['sol', 'luna'],       result: 'aether',    desc: 'Himmelskörper verschmelzen!' },
+];
+
+// === STATE ===
+const state = {
+  name: 'Alchemist',
+  level: 1,
+  xp: 0,
+  xpToNext: 10,
+  collected: [],
+  discoveredRecipes: [],
+  selected: null,
+  seed: Date.now(),
+  // NEU: Gameplay Loop
+  score: 0,
+  combo: 0,
+  lastCombineTime: 0,
+  timerActive: false,
+  timeLeft: 60,
+  timerInterval: null,
+  dailyTarget: 5,
+  dailyDone: false,
+  highScore: 0,
+  // PHASE 2: Avatar
+  avatar: {
+    x: 1000, // Welt-Koordinaten (2000x2000 Welt)
+    y: 1000,
+    size: 20,
+    speed: 5, // Pixel pro Frame
+    color: '#ff6b35',
+    isMoving: false,
+    isSprinting: false,
+    direction: { x: 0, y: 0 },
+  },
+  camera: {
+    x: 0, // Camera offset = avatar position - screen center
+    y: 0,
+  },
+  world: {
+    width: 2000,
+    height: 2000,
+  },
+  keys: {},
+  collectRadius: 60,
+  // PHASE 3: Particles
+  particles: [],
+  // PHASE 3: Spawned symbols (result of recipes)
+  spawnedSymbols: [],
+  // PHASE 3: Animation state for "Hook ERLEBBAR" — Symbole leben
+  animTime: 0,
+};
+
+function seededRandom() {
+  const x = Math.sin(state.seed++) * 10000;
+  return x - Math.floor(x);
+}
+
+function save() {
+  localStorage.setItem('nemos_alchemie_save', JSON.stringify(state));
+  showSaveIndicator();
+}
+
+function load() {
+  const saved = localStorage.getItem('nemos_alchemie_save');
+  if (saved) {
+    try {
+      const loadedState = JSON.parse(saved);
+      // Merge loaded state into current state
+      Object.assign(state, loadedState);
+      // Update UI
+      document.getElementById('player-name').value = state.name;
+      updateXPBar();
+      updateSymbolsPanel();
+      updateGrimoire();
+      console.log('[SAVE/LOAD] Spielstand geladen:', state.name, 'Level', state.level);
+    } catch(e) {
+      console.error('[SAVE/LOAD] Load failed:', e);
+    }
+  }
+}
+
+function showSaveIndicator() {
+  // Zeigt "Saved!" kurz an
+  let indicator = document.getElementById('save-indicator');
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'save-indicator';
+    indicator.style = 'position:fixed;top:10px;right:10px;background:rgba(0,200,100,0.9);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;z-index:1000;opacity:0;transition:opacity 0.3s;';
+    document.body.appendChild(indicator);
+  }
+  indicator.textContent = '💾 Saved!';
+  indicator.style.opacity = '1';
+  setTimeout(() => indicator.style.opacity = '0', 1500);
+}
+
+// === GAME ===
+let canvas, ctx, animId;
+
+function startGame() {
+  const name = document.getElementById('player-name').value.trim() || 'Alchemist';
+  state.name = name;
+  save();
+
+  document.getElementById('start').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+  document.getElementById('hud-name').textContent = state.name;
+
+  canvas = document.getElementById('canvas');
+  ctx = canvas.getContext('2d');
+  resize();
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('click', onCanvasClick);
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+
+  load();
+  updateHUD();
+  renderGrimoire();
   
-  <p class="footer">
-    Ein Projekt von <a href="https://github.com/OGNemo" target="_blank">OGNemo</a> 
-    — Offene Quelle auf <a href="https://github.com/OGNemo/nemos-alchemie" target="_blank">GitHub</a>
-  </p>
+  // PHASE 2: WASD Input
+  window.addEventListener('keydown', (e) => {
+    state.keys[e.key.toLowerCase()] = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    state.keys[e.key.toLowerCase()] = false;
+  });
+  
+  // Auto-Save regelmaessig (60s) + bei Page-Close
+  setInterval(() => save(), 60000);
+  window.addEventListener('beforeunload', () => save());
+  
+  loop();
+}
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function loop() {
+  update();
+  draw();
+  animId = requestAnimationFrame(loop);
+}
+
+function update() {
+  // PHASE 2: Avatar Bewegung
+  const avatar = state.avatar;
+  
+  // PHASE 3: Animation time — für "Symbole atmen"
+  state.animTime += 0.016; // ~60fps
+  avatar.isMoving = false;
+  avatar.direction.x = 0;
+  avatar.direction.y = 0;
+  
+  // Sprint check (Shift)
+  const isSprinting = state.keys['shift'];
+  const currentSpeed = isSprinting ? avatar.speed * 2 : avatar.speed;
+  
+  if (state.keys['w'] || state.keys['arrowup']) {
+    avatar.direction.y = -1;
+    avatar.isMoving = true;
+  }
+  if (state.keys['s'] || state.keys['arrowdown']) {
+    avatar.direction.y = 1;
+    avatar.isMoving = true;
+  }
+  if (state.keys['a'] || state.keys['arrowleft']) {
+    avatar.direction.x = -1;
+    avatar.isMoving = true;
+  }
+  if (state.keys['d'] || state.keys['arrowright']) {
+    avatar.direction.x = 1;
+    avatar.isMoving = true;
+  }
+  
+  // Normalize diagonal movement
+  if (avatar.isMoving) {
+    const len = Math.sqrt(avatar.direction.x ** 2 + avatar.direction.y ** 2);
+    avatar.x += (avatar.direction.x / len) * currentSpeed;
+    avatar.y += (avatar.direction.y / len) * currentSpeed;
+    
+    // Clamp to world bounds
+    avatar.x = Math.max(50, Math.min(state.world.width - 50, avatar.x));
+    avatar.y = Math.max(50, Math.min(state.world.height - 50, avatar.y));
+  }
+  
+  // Camera folgen (smooth)
+  const targetCamX = avatar.x - canvas.width / 2;
+  const targetCamY = avatar.y - canvas.height / 2;
+  state.camera.x += (targetCamX - state.camera.x) * 0.1;
+  state.camera.y += (targetCamY - state.camera.y) * 0.1;
+  
+  // Camera clamp to world
+  state.camera.x = Math.max(0, Math.min(state.world.width - canvas.width, state.camera.x));
+  state.camera.y = Math.max(0, Math.min(state.world.height - canvas.height, state.camera.y));
+  
+  // Sprint glow effect
+  avatar.isSprinting = isSprinting && avatar.isMoving;
+  
+  // Symbol floating animation (in Welt-Koordinaten)
+  const time = Date.now() * 0.001;
+  SYMBOLS.forEach((s, i) => {
+    s.displayY = s.y + Math.sin(time + i) * 5; // 5px floating
+  });
+  
+  // PHASE 2: Auto-Collect wenn Avatar ein Symbol berührt
+  if (avatar.isMoving) {
+    SYMBOLS.forEach(s => {
+      if (state.collected.includes(s.id)) return;
+      
+      const sx = s.x;
+      const sy = s.displayY;
+      const ax = avatar.x;
+      const ay = avatar.y;
+      const dist = Math.sqrt((sx - ax) ** 2 + (sy - ay) ** 2);
+      
+      if (dist < state.collectRadius) {
+        state.collected.push(s.id);
+        state.xp += 2;
+        showRecipeLog(`🜍 ${s.glyph} ${s.name} eingesammelt! +2 XP`);
+        checkLevelUp();
+        save();
+        updateHUD();
+        renderGrimoire();
+      }
+    });
+  }
+  
+  // PHASE 3: Particles updaten
+  state.particles = state.particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15; // gravity
+    p.life -= 0.025;
+    return p.life > 0;
+  });
+}
+
+function draw() {
+  // Background mit Gradient
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  grad.addColorStop(0, '#0a0a12');
+  grad.addColorStop(1, '#1a1a2e');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // World Grid (in Welt-Koordinaten, mit Camera-Offset)
+  ctx.strokeStyle = 'rgba(155, 89, 182, 0.15)';
+  ctx.lineWidth = 1;
+  const gridSize = 100;
+  const offsetX = -state.camera.x % gridSize;
+  const offsetY = -state.camera.y % gridSize;
+  
+  for (let x = offsetX; x < canvas.width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = offsetY; y < canvas.height; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+  
+  // World boundary
+  ctx.strokeStyle = 'rgba(231, 76, 60, 0.3)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(-state.camera.x, -state.camera.y, state.world.width, state.world.height);
+  
+  // Mini-Map (World-Koordinaten für Symbole)
+  const miniMapX = canvas.width - 160;
+  const miniMapY = 10;
+  const miniMapW = 150;
+  const miniMapH = 150;
+  
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(miniMapX, miniMapY, miniMapW, miniMapH);
+  ctx.strokeStyle = '#4ecdc4';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(miniMapX, miniMapY, miniMapW, miniMapH);
+  
+  const scaleX = miniMapW / state.world.width;
+  const scaleY = miniMapH / state.world.height;
+  
+  // Symbole in Mini-Map
+  SYMBOLS.forEach(s => {
+    const collected = state.collected.includes(s.id);
+    const mx = miniMapX + s.x * scaleX;
+    const my = miniMapY + s.y * scaleY;
+    ctx.fillStyle = collected ? s.color : '#555';
+    ctx.beginPath();
+    ctx.arc(mx, my, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  
+  // Avatar in Mini-Map
+  ctx.fillStyle = state.avatar.color;
+  ctx.beginPath();
+  ctx.arc(
+    miniMapX + state.avatar.x * scaleX,
+    miniMapY + state.avatar.y * scaleY,
+    4, 0, Math.PI * 2
+  );
+  ctx.fill();
+
+  // draw symbols (mit Camera-Offset für Welt-Koordinaten)
+  SYMBOLS.forEach(s => {
+    const x = s.x - state.camera.x;
+    const y = s.displayY - state.camera.y;
+    
+    // Nur zeichnen wenn auf Screen sichtbar
+    if (x < -50 || x > canvas.width + 50 || y < -50 || y > canvas.height + 50) return;
+    
+    const collected = state.collected.includes(s.id);
+    const time = state.animTime;
+
+    // PHASE 3: Symbole atmen — Animation berechnen
+    const breathPhase = Math.sin(time * 1.5 + s.id.charCodeAt(0) * 0.3); // langsames Atmen
+    const pulsePhase = Math.sin(time * 3 + s.id.charCodeAt(0) * 0.5);   // schnelles Pulsieren
+    const floatY = breathPhase * 4; // 4px Auf/Ab
+    const scale = collected ? 1 + breathPhase * 0.08 : 1; // gesammelte atmen stärker
+    const glow = collected ? 20 + pulsePhase * 10 : 0; // Glow pulsiert
+
+    ctx.save();
+    ctx.font = '48px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // PHASE 3: Animiertes Zeichnen
+    const drawX = x;
+    const drawY = y + floatY;
+    
+    // Glow / Schatten für gesammelte Symbole
+    if (collected) {
+      ctx.shadowColor = s.color;
+      ctx.shadowBlur = glow;
+    } else {
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.5;
+    }
+
+    // Skalierung anwenden (via transform)
+    ctx.translate(drawX, drawY);
+    ctx.scale(scale, scale);
+    ctx.translate(-drawX, -drawY);
+
+    ctx.fillStyle = collected ? s.color : '#555';
+    ctx.fillText(s.glyph, drawX, drawY);
+    ctx.restore();
+
+    // Label schwebt leicht
+    ctx.fillStyle = collected ? '#c9b896' : '#555';
+    ctx.font = '14px Georgia';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.name, x, y + 40 + floatY);
+  });
+
+  // PHASE 2: Avatar zeichnen (in Welt-Koordinaten, mit Camera-Offset)
+  const avatar = state.avatar;
+  const ax = avatar.x - state.camera.x;
+  const ay = avatar.y - state.camera.y;
+  
+  // Sprint glow intensiver
+  const glowIntensity = avatar.isSprinting ? 40 : (avatar.isMoving ? 25 : 15);
+  const avatarSize = avatar.isSprinting ? avatar.size * 1.2 : avatar.size;
+  
+  // Avatar Körper (einfache Figur)
+  ctx.save();
+  ctx.shadowColor = avatar.isSprinting ? '#fff' : avatar.color;
+  ctx.shadowBlur = glowIntensity;
+  
+  // Körper (Rechteck)
+  ctx.fillStyle = avatar.isSprinting ? '#ffa500' : avatar.color;
+  const bodyWidth = avatarSize * 1.4;
+  const bodyHeight = avatarSize * 1.8;
+  ctx.fillRect(ax - bodyWidth/2, ay - bodyHeight/2 + avatarSize*0.3, bodyWidth, bodyHeight);
+  
+  // Kopf (Kreis)
+  ctx.beginPath();
+  ctx.arc(ax, ay - bodyHeight/2 + avatarSize*0.3, avatarSize * 0.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Weißer Kern
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(ax, ay - bodyHeight/2 + avatarSize*0.3, avatarSize * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  
+  // Richtung-Indikator (Dreieck das in Bewegungsrichtung zeigt)
+  if (avatar.isMoving && (avatar.direction.x !== 0 || avatar.direction.y !== 0)) {
+    const angle = Math.atan2(avatar.direction.y, avatar.direction.x);
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(angle);
+    ctx.fillStyle = avatar.isSprinting ? '#ffa500' : '#fff';
+    ctx.beginPath();
+    ctx.moveTo(avatarSize * 1.2, 0);
+    ctx.lineTo(avatarSize * 0.6, -avatarSize * 0.4);
+    ctx.lineTo(avatarSize * 0.6, avatarSize * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  
+  // Sprint indicator
+  if (avatar.isSprinting) {
+    ctx.fillStyle = '#ffa500';
+    ctx.font = 'bold 12px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡ SPRINT', ax, ay - avatar.size * 2.5);
+  }
+  
+  // Avatar Position im HUD anzeigen (Welt-Koordinaten)
+  ctx.fillStyle = '#c9b896';
+  ctx.font = '12px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Position: ${avatar.x.toFixed(0)}, ${avatar.y.toFixed(0)} | Welt: ${state.world.width}x${state.world.height}`, 10, canvas.height - 10);
+  
+  // PHASE 3: Particles zeichnen
+  state.particles.forEach(p => {
+    const px = p.x - state.camera.x;
+    const py = p.y - state.camera.y;
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(px, py, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  
+  // draw selection line
+  if (state.selected) {
+    const sel = SYMBOLS.find(s => s.id === state.selected);
+    if (sel) {
+      ctx.strokeStyle = sel.color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(sel.x - state.camera.x, sel.displayY - state.camera.y, 35, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+function onCanvasClick(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left + state.camera.x; // Welt-Koordinaten
+  const my = e.clientY - rect.top + state.camera.y;
+  processClick(mx, my);
+}
+
+function onTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const mx = touch.clientX - rect.left + state.camera.x;
+  const my = touch.clientY - rect.top + state.camera.y;
+  processClick(mx, my);
+}
+
+function processClick(mx, my) {
+  // mx/my sind jetzt Welt-Koordinaten (nach Camera-Offset)
+  SYMBOLS.forEach(s => {
+    const dist = Math.sqrt((mx - s.x) ** 2 + (my - s.displayY) ** 2);
+
+    if (dist < 50) {
+      handleSymbolClick(s);
+    }
+  });
+}
+
+function handleSymbolClick(s) {
+  // Auto-start timer when player has enough symbols and no challenge active
+  if (!state.timerActive && state.collected.length >= 3 && !state.dailyDone) {
+    startTimer();
+  }
+
+  if (!state.collected.includes(s.id)) {
+    state.collected.push(s.id);
+    state.xp += 2;
+    showRecipeLog(`🜍 ${s.glyph} ${s.name} entdeckt! +2 XP`);
+    checkLevelUp();
+    state.combo = 0;
+    save();
+    updateHUD();
+    renderGrimoire();
+    return;
+  }
+
+
+  if (state.selected === s.id) {
+    state.selected = null;
+    state.combo = 0;
+    showRecipeLog(`${s.glyph} Abgewählt.`);
+  } else if (state.selected) {
+    const now = Date.now();
+    const recipe = RECIPES.find(r =>
+      (r.ingredients.includes(state.selected) && r.ingredients.includes(s.id)) ||
+      (r.ingredients[0] === state.selected && r.ingredients[1] === s.id) ||
+      (r.ingredients[1] === state.selected && r.ingredients[0] === s.id)
+    );
+
+    if (recipe) {
+      const isNew = !state.discoveredRecipes.find(r => r.result === recipe.result);
+      const comboBonus = (now - state.lastCombineTime < 3000) ? Math.min(state.combo * 2, 10) : 0;
+
+      if (isNew) {
+        state.discoveredRecipes.push(recipe);
+        state.xp += 5 + comboBonus;
+        state.score += 10 + comboBonus;
+        state.combo++;
+        
+        // PHASE 3: NEUES SYMBOL IN WELT SPAWNEN!
+        spawnResultSymbol(recipe.result, s);
+        
+        if (state.timerActive) {
+          state.dailyDone++;
+          if (state.dailyDone >= state.dailyTarget) {
+            clearInterval(state.timerInterval);
+            state.timerActive = false;
+            state.score += 50;
+            showRecipeLog(`🏆 TAGES-CHALLENGE GESCHAFFT! +50 Bonus!`);
+          }
+        }
+        showRecipeLog(`✨ ${recipe.desc} NEU! +${5 + comboBonus} XP ${comboBonus ? `(+${comboBonus} Combo!)` : ''}`);
+        checkLevelUp();
+      } else {
+        state.xp += 1 + Math.floor(comboBonus / 2);
+        state.score += 2;
+        showRecipeLog(`🔄 Schon entdeckt. +${1 + Math.floor(comboBonus / 2)} XP`);
+      }
+      state.lastCombineTime = now;
+    } else {
+      showRecipeLog(`❌ Keine Reaktion... ${state.combo > 0 ? 'Combo verloren.' : ''}`);
+      state.combo = 0;
+    }
+    state.selected = null;
+  } else {
+    state.selected = s.id;
+    showRecipeLog(`${s.glyph} ${s.name} aktiviert`);
+  }
+
+  if (state.score > state.highScore) {
+    state.highScore = state.score;
+  }
+
+  save();
+  updateHUD();
+}
+
+function startTimer() {
+  state.timerActive = true;
+  state.timeLeft = 60;
+  state.dailyDone = 0;
+  showRecipeLog(`⏱️ 60-Sekunden-Challenge! Finde ${state.dailyTarget} neue Rezepte!`);
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateHUD();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      state.timerActive = false;
+      showRecipeLog(`⏱️ Zeit vorbei! ${state.dailyDone}/${state.dailyTarget} geschafft.`);
+      updateHUD();
+    }
+  }, 1000);
+}
+
+function checkLevelUp() {
+  while (state.xp >= state.xpToNext) {
+    state.xp -= state.xpToNext;
+    state.level++;
+    state.xpToNext = Math.floor(state.xpToNext * 1.5);
+    showRecipeLog(`🎉 Level ${state.level} erreicht!`);
+    save(); // Auto-Save bei Level-Up
+  }
+}
+
+function showRecipeLog(msg) {
+  const el = document.getElementById('recipe-log');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function updateHUD() {
+  document.getElementById('hud-name').textContent = state.name;
+  document.getElementById('hud-level').textContent = state.level;
+  document.getElementById('hud-symbols').textContent = state.collected.length + '/' + SYMBOLS.length;
+  
+  // Score + Combo anzeigen
+  let extra = '';
+  if (state.score > 0) extra += ` | 🏆 ${state.score}`;
+  if (state.combo > 1) extra += ` | ⚡${state.combo}x`;
+  if (state.timerActive) extra += ` | ⏱️ ${state.timeLeft}s`;
+  if (state.highScore > 0) extra += ` | ★ ${state.highScore}`;
+  
+  const symbolsEl = document.getElementById('hud-symbols');
+  symbolsEl.textContent = state.collected.length + '/' + SYMBOLS.length + extra;
+}
+
+function toggleGrimoire() {
+  const el = document.getElementById('grimoire');
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+function renderGrimoire() {
+  const grid = document.getElementById('grimoire-grid');
+  grid.innerHTML = '';
+
+  SYMBOLS.forEach(s => {
+    const collected = state.collected.includes(s.id);
+    const recipe = state.discoveredRecipes.find(r => r.result === s.id);
+
+    const card = document.createElement('div');
+    card.className = 'symbol-card';
+    card.style.opacity = collected ? 1 : 0.4;
+    card.innerHTML = `
+      <div class="glyph">${s.glyph}</div>
+      <div class="name">${s.name}</div>
+      <div class="desc">${s.desc}</div>
+      ${recipe ? '<div style="color:#4ecdc4;margin-top:0.5em;font-size:0.8em;">✨ Rezept!</div>' : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// === HINT SYSTEM ===
+const HINTS = [
+  { check: () => true,                                    hint: 'Klicke auf Symbole in der Welt um sie zu sammeln.' },
+  { check: () => state.collected.length > 0 && !state.discoveredRecipes.length, hint: 'Du hast Symbole gesammelt. Versuche zwei davon im Grimoire zu kombinieren!' },
+  { check: () => state.collected.includes('ignis') && state.collected.includes('aqua') && !state.discoveredRecipes.find(r => r.result === 'vita'), hint: 'Ignis (Feuer) und Aqua (Wasser) ergeben zusammen etwas Neues...' },
+  { check: () => state.collected.includes('terra') && state.collected.includes('aqua') && !state.discoveredRecipes.find(r => r.result === 'ignis'), hint: 'Terra (Erde) und Wasser... manchmal entzündet sich etwas.' },
+  { check: () => state.collected.includes('aether') && state.collected.includes('ignis') && !state.discoveredRecipes.find(r => r.result === 'terra'), hint: 'Aether (Geist) und Feuer... der Geist manifestiert sich!' },
+  { check: () => state.collected.includes('vita') && state.collected.includes('terra') && !state.discoveredRecipes.find(r => r.result === 'aether'), hint: 'Vita (Leben) und Terra (Erde)... alles kehrt zurück.' },
+  { check: () => state.discoveredRecipes.length > 0, hint: 'Du hast schon ein Rezept entdeckt! Versuche mehr Symbole zu sammeln und zu kombinieren.' },
+];
+
+function showHint() {
+  // Find first matching hint
+  const hint = HINTS.find(h => h.check());
+  if (hint) {
+    showRecipeLog('💡 ' + hint.hint);
+  }
+}
+
+// PHASE 3: Neues Symbol spawnen wenn Recipe entdeckt wird
+function spawnResultSymbol(resultId, sourceSymbol) {
+  const resultSymbol = SYMBOLS.find(s => s.id === resultId);
+  if (!resultSymbol) return;
+  
+  // Bereits in der Welt?
+  if (state.collected.includes(resultId)) {
+    // Symbol zurücksetzen damit es wieder spawnt
+    state.collected = state.collected.filter(id => id !== resultId);
+  }
+  
+  // Spawn Position: Random im Umkreis um Player
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 150 + Math.random() * 250;
+  const nx = state.avatar.x + Math.cos(angle) * dist;
+  const ny = state.avatar.y + Math.sin(angle) * dist;
+  
+  // Clamp to world
+  const x = Math.max(100, Math.min(state.world.width - 100, nx));
+  const y = Math.max(100, Math.min(state.world.height - 100, ny));
+  
+  // Particles burst!
+  for (let i = 0; i < 25; i++) {
+    state.particles.push({
+      x: x,
+      y: y,
+      vx: (Math.random() - 0.5) * 12,
+      vy: (Math.random() - 0.5) * 12 - 3,
+      life: 1.0,
+      color: resultSymbol.color,
+      size: 4 + Math.random() * 6
+    });
+  }
+  
+  // Neues Symbol in die Welt setzen
+  resultSymbol.x = x;
+  resultSymbol.y = y;
+  
+  // Message
+  showRecipeLog(`🌟 ${resultSymbol.glyph} ${resultSymbol.name} wurde geboren! Finde es in der Welt!`);
+}
+
+// === INIT ===
+load();
+if (localStorage.getItem('nemos_alchemie_save')) {
+  document.getElementById('player-name').value = state.name;
+}
+</script>
 </body>
 </html>
