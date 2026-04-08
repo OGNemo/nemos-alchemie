@@ -1135,6 +1135,18 @@ function tutorialFinish() {
     localStorage.setItem('nemo-tutorial-done', 'true');
   }
   document.getElementById('tutorial').style.display = 'none';
+  canvas = document.getElementById('canvas');
+  ctx = canvas.getContext('2d');
+  resize();
+  window.addEventListener('resize', resize);
+  canvas.addEventListener('click', onCanvasClick);
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  window.addEventListener('keydown', (e) => { state.keys[e.key.toLowerCase()] = true; });
+  window.addEventListener('keyup', (e) => { state.keys[e.key.toLowerCase()] = false; });
+  setInterval(() => save(), 60000);
+  window.addEventListener('beforeunload', save);
+  window.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') save(); });
+  loop();
 }
 
 </script>
