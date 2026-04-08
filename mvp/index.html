@@ -355,6 +355,62 @@ const state = {
   },
 };
 
+// === WEB AUDIO API SOUND SYSTEM ===
+let audioCtx = null;
+let masterVolume = 0.15;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSound(type) {
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    gain.gain.setValueAtTime(masterVolume, now);
+    
+    switch(type) {
+      case 'collect':
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.start(now); osc.stop(now + 0.15);
+        break;
+      case 'combine':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.setValueAtTime(659, now + 0.1);
+        osc.frequency.setValueAtTime(784, now + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.start(now); osc.stop(now + 0.4);
+        break;
+      case 'levelUp':
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+        osc.frequency.setValueAtTime(600, now + 0.15);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+        gain.gain.setValueAtTime(masterVolume * 1.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
+        break;
+      case 'click':
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(600, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now); osc.stop(now + 0.05);
+        break;
+    }
+  } catch(e) {}
+}
+
 function seededRandom() {
   const x = Math.sin(state.seed++) * 10000;
   return x - Math.floor(x);
@@ -526,6 +582,7 @@ function update() {
       
       if (dist < state.collectRadius) {
         state.collected.push(s.id);
+        playSound('collect');
         state.xp += 2;
         showRecipeLog(`ðŸœ ${s.glyph} ${s.name} eingesammelt! +2 XP`);
         checkLevelUp();
@@ -870,6 +927,7 @@ function handleSymbolClick(s) {
 
       if (isNew) {
         state.discoveredRecipes.push(recipe);
+        playSound('combine');
         state.xp += 5 + comboBonus;
         state.score += 10 + comboBonus;
         state.combo++;
@@ -938,6 +996,7 @@ function checkLevelUp() {
     const newWorldSize = state.getWorldSize(state.level);
     state.world.width = newWorldSize;
     state.world.height = newWorldSize;
+    playSound('levelUp');
     showRecipeLog(`ðŸŽ‰ Level ${state.level} erreicht! Neue Welt: ${newWorldSize}x${newWorldSize}`);
     save(); // Auto-Save bei Level-Up
   }
