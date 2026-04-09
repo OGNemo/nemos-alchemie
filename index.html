@@ -54,6 +54,23 @@ body {
   border-color: rgba(201, 184, 150, 0.7);
   box-shadow: 0 0 20px rgba(201, 184, 150, 0.2);
 }
+#start .hook-intro {
+  font-size: 1.8em;
+  color: #f1c40f;
+  margin-bottom: 0.3em;
+  text-shadow: 0 0 20px rgba(241, 196, 79, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+#start .hook-sub {
+  font-size: 1.1em;
+  color: #9b59b6;
+  margin-bottom: 2em;
+  font-style: italic;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+}
 #game {
   display: none;
   position: relative;
@@ -147,9 +164,10 @@ canvas {
 <body>
 
 <div id="start">
-  <h1>ðŸ”±</h1>
+  <div class="hook-intro">✦ Deine Symbole sind ALIVE ✦</div>
+  <div class="hook-sub">Sie erinnern sich an dich.</div>
   <input type="text" id="player-name" placeholder="Dein Name" value="Alchemist">
-  <button onclick="startGame()">Betrete die Alchemie</button>
+  <button onclick="startGame()">⚗️ Erwecke die Symbole</button>
 </div>
 
 <!-- TUTORIAL MODAL -->
@@ -157,20 +175,14 @@ canvas {
   <div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border:2px solid #e94560;border-radius:16px;padding:40px;max-width:500px;text-align:center;color:#fff;font-family:Georgia,serif;">
     <div id="tutorial-content"></div>
     <div style="margin-top:30px;display:flex;gap:15px;justify-content:center;">
-      <button id="tutorial-prev" onclick="tutorialPrev()" style="display:none;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#aaa;padding:10px 20px;cursor:pointer;border-radius:6px;font-size:14px;">â† ZurÃ¼ck</button>
-      <button id="tutorial-next" onclick="tutorialNext()" style="background:#e94560;border:none;color:#fff;padding:12px 30px;cursor:pointer;border-radius:6px;font-size:16px;font-weight:bold;">Weiter â†’</button>
+      <button id="tutorial-prev" onclick="tutorialPrev()" style="display:none;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#aaa;padding:10px 20px;cursor:pointer;border-radius:6px;font-size:14px;">â† ZurÃ1⁄4ck</button>
+      <button id="tutorial-next" onclick="tutorialNext()" style="background:#e94560;border:none;color:#fff;padding:12px 30px;cursor:pointer;border-radius:6px;font-size:16px;font-weight:bold;">Weiter â†'</button>
       <button id="tutorial-skip" onclick="tutorialSkip()" style="background:none;border:none;color:#666;font-size:12px;cursor:pointer;">Ãœberspringen</button>
     </div>
     <div style="margin-top:15px;">
       <input type="checkbox" id="tutorial-never" style="margin-right:8px;"><label for="tutorial-never" style="color:#555;font-size:12px;">Nicht mehr anzeigen</label>
     </div>
   </div>
-</div>
-
-<div id="game">
-  <h1>ðŸœ</h1>
-  <input type="text" id="player-name" placeholder="Dein Name" value="Alchemist">
-  <button onclick="startGame()">Betrete die Alchemie</button>
 </div>
 
 <div id="game">
@@ -181,14 +193,16 @@ canvas {
     <div class="symbols">Symbole: <span id="hud-symbols">0</span></div>
     <div id="biome-indicator" style="margin-top:5px;font-size:14px;color:#ff6b35;">🔥 IGNIS</div>
     <button onclick="switchBiome()" style="margin-top:5px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:3px 8px;cursor:pointer;font-size:11px;border-radius:3px;">🌍 Biome wechseln</button>
+    <div style="margin-top:8px;font-size:11px;color:#888;">🔊 <input type="range" id="volumeslider" min="0" max="100" value="15" oninput="setVolume(this.value/100)" style="width:60px;vertical-align:middle;"></div>
   </div>
-  <button id="grimoire-btn" onclick="toggleGrimoire()">ðŸ“– Grimoire</button>
-  <button id="hint-btn" onclick="showHint()" style="position:fixed;top:60px;right:20px;background:rgba(241,196,79,0.2);border:1px solid rgba(241,196,79,0.5);color:#f1c40f;padding:0.4em 0.8em;cursor:pointer;border-radius:4px;font-family:Georgia,serif;">ðŸ’¡ Tipp</button>
+  <button id="grimoire-btn" onclick="toggleGrimoire()">ðŸ"- Grimoire</button>
+  <button id="hint-btn" onclick="showHint()" style="position:fixed;top:60px;right:20px;background:rgba(241,196,79,0.2);border:1px solid rgba(241,196,79,0.5);color:#f1c40f;padding:0.4em 0.8em;cursor:pointer;border-radius:4px;font-family:Georgia,serif;">ðŸ'¡ Tipp</button>
   <div id="recipe-log"></div>
 </div>
 
 <div id="grimoire">
-  <h2>ðŸ“– Grimoire</h2>
+  <h2>ðŸ"- Grimoire</h2>
+  <input type="text" id="grimoire-search" placeholder="Suche..." oninput="renderGrimoire()" style="width:100%;padding:8px;margin-bottom:10px;border:1px solid #4ecdc4;border-radius:4px;background:#1a1a2e;color:#fff;font-size:14px;">
   <div id="grimoire-grid"></div>
   <button id="close-grimoire" onclick="toggleGrimoire()">Schliessen</button>
 </div>
@@ -196,85 +210,85 @@ canvas {
 <script>
 // === SYMBOLS ===
 const SYMBOLS = [
-  // IGNIS Biome â€” Feuer-Symbole
-  { id: 'ignis',   name: 'Ignis',   glyph: 'ðŸœ‚', color: '#ff6b35', desc: 'Feuer â€” Transformation', x: 300, y: 500, biome: 'IGNIS' },
-  { id: 'phoenix', name: 'Phoenix', glyph: 'ðŸ”¥', color: '#e74c3c', desc: 'Wiedergeburt', x: 400, y: 800, biome: 'IGNIS' },
-  { id: 'sol',     name: 'Sol',     glyph: 'â˜€ï¸', color: '#fdcb6e', desc: 'Sonne â€” Kraft', x: 1300, y: 700, biome: 'IGNIS' },
-  { id: 'lux',     name: 'Lux',     glyph: 'âœ¨', color: '#f1c40f', desc: 'Licht â€” Erleuchtung', x: 1000, y: 1700, biome: 'IGNIS' },
-  
-  // AQUA Biome â€” Wasser-Symbole
-  { id: 'aqua',    name: 'Aqua',    glyph: 'ðŸœ„', color: '#4ecdc4', desc: 'Wasser â€” AuflÃ¶sung', x: 1700, y: 500, biome: 'AQUA' },
-  { id: 'glacies', name: 'Glacies', glyph: 'â„ï¸', color: '#74b9ff', desc: 'Eis â€” Stille', x: 1600, y: 800, biome: 'AQUA' },
-  { id: 'luna',    name: 'Luna',    glyph: 'ðŸŒ™', color: '#dfe6e9', desc: 'Mond â€” Reflexion', x: 1300, y: 1300, biome: 'AQUA' },
-  { id: 'nox',     name: 'Nox',     glyph: 'ðŸŒ‘', color: '#34495e', desc: 'Nacht â€” Ruhe', x: 600, y: 1000, biome: 'AQUA' },
-  
-  // TERRA Biome â€” Erde-Symbole
-  { id: 'terra',   name: 'Terra',   glyph: 'ðŸœƒ', color: '#95a5a6', desc: 'Erde â€” StabilitÃ¤t', x: 300, y: 1500, biome: 'TERRA' },
-  
+  // IGNIS Biome â€" Feuer-Symbole
+  { id: 'ignis',   name: 'Ignis',   glyph: 'ðŸœ'', color: '#ff6b35', desc: 'Feuer â€" Transformation', x: 300, y: 500, biome: 'IGNIS' },
+  { id: 'phoenix', name: 'Phoenix', glyph: 'ðŸ"¥', color: '#e74c3c', desc: 'Wiedergeburt', x: 400, y: 800, biome: 'IGNIS' },
+  { id: 'sol',     name: 'Sol',     glyph: 'â ̃€ï ̧', color: '#fdcb6e', desc: 'Sonne â€" Kraft', x: 1300, y: 700, biome: 'IGNIS' },
+  { id: 'lux',     name: 'Lux',     glyph: 'âœ ̈', color: '#f1c40f', desc: 'Licht â€" Erleuchtung', x: 1000, y: 1700, biome: 'IGNIS' },
+
+  // AQUA Biome â€" Wasser-Symbole
+  { id: 'aqua',    name: 'Aqua',    glyph: 'ðŸœ"', color: '#4ecdc4', desc: 'Wasser â€" AuflÃ¶sung', x: 1700, y: 500, biome: 'AQUA' },
+  { id: 'glacies', name: 'Glacies', glyph: 'â"ï ̧', color: '#74b9ff', desc: 'Eis â€" Stille', x: 1600, y: 800, biome: 'AQUA' },
+  { id: 'luna',    name: 'Luna',    glyph: 'ðŸŒTM', color: '#dfe6e9', desc: 'Mond â€" Reflexion', x: 1300, y: 1300, biome: 'AQUA' },
+  { id: 'nox',     name: 'Nox',     glyph: 'ðŸŒ'', color: '#34495e', desc: 'Nacht â€" Ruhe', x: 600, y: 1000, biome: 'AQUA' },
+
+  // TERRA Biome â€" Erde-Symbole
+  { id: 'terra',   name: 'Terra',   glyph: 'ðŸœƒ', color: '#95a5a6', desc: 'Erde â€" StabilitÃ¤t', x: 300, y: 1500, biome: 'TERRA' },
+
   // IGNIS erweitert
   { id: 'ardor',   name: 'Ardor',   glyph: '🔥', color: '#ff4500', desc: 'Brennende Leidenschaft', x: 500, y: 300, biome: 'IGNIS' },
-  { id: 'fulgur',  name: 'Fulgur',  glyph: '⚡', color: '#ffff00', desc: 'Blitz — Energie', x: 200, y: 600, biome: 'IGNIS' },
-  { id: 'vulcanus',name:'Vulcanus', glyph: '🌋', color: '#8b0000', desc: 'Vulkan — Urgewalt', x: 800, y: 400, biome: 'IGNIS' },
-  
+  { id: 'fulgur',  name: 'Fulgur',  glyph: '⚡', color: '#ffff00', desc: 'Blitz - Energie', x: 200, y: 600, biome: 'IGNIS' },
+  { id: 'vulcanus',name:'Vulcanus', glyph: '🌋', color: '#8b0000', desc: 'Vulkan - Urgewalt', x: 800, y: 400, biome: 'IGNIS' },
+
   // AQUA erweitert
-  { id: 'pluvia',  name: 'Pluvia',  glyph: '🌧️', color: '#00ced1', desc: 'Regen — Reinigung', x: 1500, y: 600, biome: 'AQUA' },
-  { id: 'unda',    name: 'Unda',    glyph: '🌊', color: '#1e90ff', desc: 'Welle — Bewegung', x: 1800, y: 900, biome: 'AQUA' },
-  { id: 'nix',     name: 'Nix',     glyph: '❅', color: '#e0ffff', desc: 'Schnee — Stille', x: 1200, y: 400, biome: 'AQUA' },
-  
+  { id: 'pluvia',  name: 'Pluvia',  glyph: '🌧️', color: '#00ced1', desc: 'Regen - Reinigung', x: 1500, y: 600, biome: 'AQUA' },
+  { id: 'unda',    name: 'Unda',    glyph: '🌊', color: '#1e90ff', desc: 'Welle - Bewegung', x: 1800, y: 900, biome: 'AQUA' },
+  { id: 'nix',     name: 'Nix',     glyph: '❅', color: '#e0ffff', desc: 'Schnee - Stille', x: 1200, y: 400, biome: 'AQUA' },
+
   // TERRA erweitert
-  { id: 'saxum',   name: 'Saxum',   glyph: '🪨', color: '#696969', desc: 'Stein — Beständigkeit', x: 500, y: 1400, biome: 'TERRA' },
-  { id: 'silva',   name: 'Silva',   glyph: '🌲', color: '#228b22', desc: 'Wald — Leben', x: 200, y: 1700, biome: 'TERRA' },
-  { id: 'cautes',  name: 'Cautes',  glyph: '⛰️', color: '#808080', desc: 'Berg — Würde', x: 900, y: 1300, biome: 'TERRA' },
-  
+  { id: 'saxum',   name: 'Saxum',   glyph: '🪨', color: '#696969', desc: 'Stein - Beständigkeit', x: 500, y: 1400, biome: 'TERRA' },
+  { id: 'silva',   name: 'Silva',   glyph: '🌲', color: '#228b22', desc: 'Wald - Leben', x: 200, y: 1700, biome: 'TERRA' },
+  { id: 'cautes',  name: 'Cautes',  glyph: '⛰️', color: '#808080', desc: 'Berg - Würde', x: 900, y: 1300, biome: 'TERRA' },
+
   // AETHER erweitert
-  { id: 'spiritus',name:'Spiritus', glyph: '👻', color: '#9370db', desc: 'Geist — Transzendenz', x: 1900, y: 1200, biome: 'AETHER' },
-  { id: 'quintess',name:'Quintess', glyph: '🌀', color: '#da70d6', desc: 'Quintessenz — Ursprung', x: 1100, y: 1900, biome: 'AETHER' },
-  { id: 'tempestas',name:'Tempestas',glyph:'â›ˆï¸', color: '#3498db', desc: 'Sturm â€” Wandel', x: 1400, y: 1000, biome: 'TERRA' },
-  
-  // AETHER Biome â€” Ã„ther-Symbole
-  { id: 'aether',  name: 'Aether',  glyph: 'ðŸœ', color: '#9b59b6', desc: 'Ã„ther â€” Geist', x: 1700, y: 1500, biome: 'AETHER' },
-  { id: 'vita',    name: 'Vita',    glyph: 'ðŸœˆ', color: '#2ecc71', desc: 'Leben â€” Wachstum', x: 1000, y: 300, biome: 'AETHER' },
+  { id: 'spiritus',name:'Spiritus', glyph: '👻', color: '#9370db', desc: 'Geist - Transzendenz', x: 1900, y: 1200, biome: 'AETHER' },
+  { id: 'quintess',name:'Quintess', glyph: '🌀', color: '#da70d6', desc: 'Quintessenz - Ursprung', x: 1100, y: 1900, biome: 'AETHER' },
+  { id: 'tempestas',name:'Tempestas',glyph:'â›ˆï ̧', color: '#3498db', desc: 'Sturm â€" Wandel', x: 1400, y: 1000, biome: 'TERRA' },
+
+  // AETHER Biome â€" Ã"ther-Symbole
+  { id: 'aether',  name: 'Aether',  glyph: 'ðŸœ', color: '#9b59b6', desc: 'Ã"ther â€" Geist', x: 1700, y: 1500, biome: 'AETHER' },
+  { id: 'vita',    name: 'Vita',    glyph: 'ðŸœˆ', color: '#2ecc71', desc: 'Leben â€" Wachstum', x: 1000, y: 300, biome: 'AETHER' },
 ];
 
   // === BIOME ERWEITERUNG (16:10) ===
   // IGNIS +3
-  { id: 'flux',    name: 'Flux',     glyph: '⚡', color: '#ffcc00', desc: 'Energie — Transformation', x: 250, y: 900, biome: 'IGNIS' },
-  { id: 'calor',   name: 'Calor',    glyph: '🌡', color: '#ff3300', desc: 'Hitze — Intensitaet', x: 350, y: 650, biome: 'IGNIS' },
-  { id: 'flare',   name: 'Flare',    glyph: '🌠', color: '#ff7700', desc: 'Protuberanz — Kraft', x: 750, y: 850, biome: 'IGNIS' },
+  { id: 'flux',    name: 'Flux',     glyph: '⚡', color: '#ffcc00', desc: 'Energie - Transformation', x: 250, y: 900, biome: 'IGNIS' },
+  { id: 'calor',   name: 'Calor',    glyph: '🌡', color: '#ff3300', desc: 'Hitze - Intensitaet', x: 350, y: 650, biome: 'IGNIS' },
+  { id: 'flare',   name: 'Flare',    glyph: '🌠', color: '#ff7700', desc: 'Protuberanz - Kraft', x: 750, y: 850, biome: 'IGNIS' },
 
   // AQUA +3
-  { id: 'riva',     name: 'Riva',     glyph: '🌊', color: '#3399ff', desc: 'Fluss — Bewegung', x: 1650, y: 750, biome: 'AQUA' },
-  { id: 'gelu',     name: 'Gelu',     glyph: '🧊', color: '#99ccff', desc: 'Frost — Erstarrung', x: 1750, y: 550, biome: 'AQUA' },
-  { id: 'marea',   name: 'Marea',    glyph: '🌊', color: '#0066cc', desc: 'Gezeiten — Rhythmus', x: 1550, y: 950, biome: 'AQUA' },
+  { id: 'riva',     name: 'Riva',     glyph: '🌊', color: '#3399ff', desc: 'Fluss - Bewegung', x: 1650, y: 750, biome: 'AQUA' },
+  { id: 'gelu',     name: 'Gelu',     glyph: '🧊', color: '#99ccff', desc: 'Frost - Erstarrung', x: 1750, y: 550, biome: 'AQUA' },
+  { id: 'marea',   name: 'Marea',    glyph: '🌊', color: '#0066cc', desc: 'Gezeiten - Rhythmus', x: 1550, y: 950, biome: 'AQUA' },
 
   // TERRA +5
-  { id: 'rupes',   name: 'Rupes',    glyph: '🗿', color: '#5a5a5a', desc: 'Felswand — Stabilitaet', x: 350, y: 1550, biome: 'TERRA' },
-  { id: 'cuscut',  name: 'Cuscut',   glyph: '🌿', color: '#3d8b3d', desc: 'Pflanze — Wachstum', x: 150, y: 1350, biome: 'TERRA' },
-  { id: 'fructus', name: 'Fructus',  glyph: '🍎', color: '#cc3333', desc: 'Frucht — Reife', x: 450, y: 1750, biome: 'TERRA' },
-  { id: 'lapis',   name: 'Lapis',    glyph: '💠', color: '#4169e1', desc: 'Edelstein — Wert', x: 250, y: 1050, biome: 'TERRA' },
-  { id: 'arena',   name: 'Arena',    glyph: '⏳', color: '#d4a574', desc: 'Sanduhr — Zeit', x: 550, y: 1250, biome: 'TERRA' },
+  { id: 'rupes',   name: 'Rupes',    glyph: '🗿', color: '#5a5a5a', desc: 'Felswand - Stabilitaet', x: 350, y: 1550, biome: 'TERRA' },
+  { id: 'cuscut',  name: 'Cuscut',   glyph: '🌿', color: '#3d8b3d', desc: 'Pflanze - Wachstum', x: 150, y: 1350, biome: 'TERRA' },
+  { id: 'fructus', name: 'Fructus',  glyph: '🍎', color: '#cc3333', desc: 'Frucht - Reife', x: 450, y: 1750, biome: 'TERRA' },
+  { id: 'lapis',   name: 'Lapis',    glyph: '💠', color: '#4169e1', desc: 'Edelstein - Wert', x: 250, y: 1050, biome: 'TERRA' },
+  { id: 'arena',   name: 'Arena',    glyph: '⏳', color: '#d4a574', desc: 'Sanduhr - Zeit', x: 550, y: 1250, biome: 'TERRA' },
 
   // AETHER +6
-  { id: 'stella',  name: 'Stella',   glyph: '⭐', color: '#ffff00', desc: 'Stern — Sehnsucht', x: 1850, y: 1350, biome: 'AETHER' },
-  { id: 'anima',   name: 'Anima',    glyph: '💫', color: '#cc99ff', desc: 'Seele — Essenz', x: 1950, y: 1550, biome: 'AETHER' },
-  { id: 'corpus',  name: 'Corpus',   glyph: '🧘', color: '#f0e68c', desc: 'Koerper — Form', x: 1700, y: 1750, biome: 'AETHER' },
-  { id: 'mens',    name: 'Mens',     glyph: '🧠', color: '#e6e6fa', desc: 'Geist — Denken', x: 1450, y: 1850, biome: 'AETHER' },
-  { id: 'vis',     name: 'Vis',      glyph: '💪', color: '#ffa500', desc: 'Kraft — Energie', x: 1150, y: 1450, biome: 'AETHER' },
-  { id: 'sein',    name: 'Sein',     glyph: '☯',  color: '#c0c0c0', desc: 'Sein — Existenz', x: 1350, y: 1150, biome: 'AETHER' },
+  { id: 'stella',  name: 'Stella',   glyph: '⭐', color: '#ffff00', desc: 'Stern - Sehnsucht', x: 1850, y: 1350, biome: 'AETHER' },
+  { id: 'anima',   name: 'Anima',    glyph: '💫', color: '#cc99ff', desc: 'Seele - Essenz', x: 1950, y: 1550, biome: 'AETHER' },
+  { id: 'corpus',  name: 'Corpus',   glyph: '🧘', color: '#f0e68c', desc: 'Koerper - Form', x: 1700, y: 1750, biome: 'AETHER' },
+  { id: 'mens',    name: 'Mens',     glyph: '🧠', color: '#e6e6fa', desc: 'Geist - Denken', x: 1450, y: 1850, biome: 'AETHER' },
+  { id: 'vis',     name: 'Vis',      glyph: '💪', color: '#ffa500', desc: 'Kraft - Energie', x: 1150, y: 1450, biome: 'AETHER' },
+  { id: 'sein',    name: 'Sein',     glyph: '☯',  color: '#c0c0c0', desc: 'Sein - Existenz', x: 1350, y: 1150, biome: 'AETHER' },
 
 
 
 const RECIPES = [
   { ingredients: ['ignis', 'aqua'],     result: 'vita',      desc: 'Dampf des Lebens!' },
-  { ingredients: ['terra', 'aqua'],     result: 'ignis',    desc: 'Schlamm entzÃ¼ndet sich!' },
+  { ingredients: ['terra', 'aqua'],     result: 'ignis',    desc: 'Schlamm entzÃ1⁄4ndet sich!' },
   { ingredients: ['aether', 'ignis'],   result: 'terra',    desc: 'Geist manifestiert sich!' },
-  { ingredients: ['vita', 'terra'],     result: 'aether',   desc: 'Leben erblÃ¼ht!' },
-  { ingredients: ['lux', 'nox'],         result: 'aether',   desc: 'Licht und Nacht erzeugen Ã„ther!' },
+  { ingredients: ['vita', 'terra'],     result: 'aether',   desc: 'Leben erblÃ1⁄4ht!' },
+  { ingredients: ['lux', 'nox'],         result: 'aether',   desc: 'Licht und Nacht erzeugen Ã"ther!' },
   { ingredients: ['ignis', 'terra'],    result: 'tempestas', desc: 'Feuer und Erde erschaffen Sturm!' },
   { ingredients: ['aqua', 'lux'],        result: 'vita',     desc: 'Erleuchtetes Wasser gibt Leben!' },
   { ingredients: ['nox', 'tempestas'],  result: 'terra',     desc: 'Sturm in der Nacht formt Erde!' },
   { ingredients: ['vita', 'lux'],       result: 'ignis',    desc: 'Leben im Licht wird zu purem Feuer!' },
-  { ingredients: ['aether', 'nox'],      result: 'aqua',     desc: 'Ã„ther der Nacht wird zu Wasser!' },
+  { ingredients: ['aether', 'nox'],      result: 'aqua',     desc: 'Ã"ther der Nacht wird zu Wasser!' },
   // NEUE REZEPTE (2026-04-07)
   { ingredients: ['ignis', 'vita'],     result: 'phoenix',   desc: 'Aus Asche geboren!' },
   { ingredients: ['aqua', 'nox'],        result: 'glacies',   desc: 'Eisige Stille!' },
@@ -332,14 +346,14 @@ const state = {
     IGNIS: { name: 'Feuer', color: '#FF4500', bgGrad: ['#1a0500','#3d1000'], particleColor: '#FF6B35', unlocked: false },
     AQUA: { name: 'Wasser', color: '#00BFFF', bgGrad: ['#001a2e','#003366'], particleColor: '#4FC3F7', unlocked: false },
     TERRA: { name: 'Erde', color: '#8B4513', bgGrad: ['#1a1000','#2d1f00'], particleColor: '#A0522D', unlocked: false },
-    AETHER: { name: 'Ã„ther', color: '#9932CC', bgGrad: ['#0d0020','#1a0040'], particleColor: '#BA55D3', unlocked: false },
+    AETHER: { name: 'Ã"ther', color: '#9932CC', bgGrad: ['#0d0020','#1a0040'], particleColor: '#BA55D3', unlocked: false },
   },
   particles: [],
   // PHASE 3: Spawned symbols (result of recipes)
   spawnedSymbols: [],
-  // PHASE 3: Animation state for "Hook ERLEBBAR" â€” Symbole leben
+  // PHASE 3: Animation state for "Hook ERLEBBAR" â€" Symbole leben
   animTime: 0,
-  // PHASE 3+: Progressive World â€” mehr Symbole pro Level
+  // PHASE 3+: Progressive World â€" mehr Symbole pro Level
   getMaxSymbols: function(level) {
     if (level <= 1) return 5;
     if (level === 2) return 6;
@@ -353,7 +367,79 @@ const state = {
     const growth = (level - 1) * 200;
     return Math.min(base + growth, 2200);
   },
+  // PHASE 10: AI/Kreaturen
+  creatures: [],
+  creaturesFound: 0,
 };
+
+// === WEB AUDIO API SOUND SYSTEM ===
+let audioCtx = null;
+let masterVolume = 0.15;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSound(type) {
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    gain.gain.setValueAtTime(masterVolume, now);
+
+    switch(type) {
+      case 'collect':
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.start(now); osc.stop(now + 0.15);
+        break;
+      case 'combine':
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.setValueAtTime(659, now + 0.1);
+        osc.frequency.setValueAtTime(784, now + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.start(now); osc.stop(now + 0.4);
+        break;
+      case 'levelUp':
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+        osc.frequency.setValueAtTime(600, now + 0.15);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+        gain.gain.setValueAtTime(masterVolume * 1.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc.start(now); osc.stop(now + 0.5);
+        break;
+      case 'click':
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(600, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now); osc.stop(now + 0.05);
+        break;
+    }
+  } catch(e) {}
+}
+
+function setVolume(v) {
+  masterVolume = v;
+  localStorage.setItem('nemo-volume', v);
+}
+
+// Load saved volume
+const savedVol = localStorage.getItem('nemo-volume');
+if (savedVol !== null) {
+  masterVolume = parseFloat(savedVol);
+  const slider = document.getElementById('volumeslider');
+  if (slider) slider.value = savedVol * 100;
+}
 
 function seededRandom() {
   const x = Math.sin(state.seed++) * 10000;
@@ -393,7 +479,7 @@ function showSaveIndicator() {
     indicator.style = 'position:fixed;top:10px;right:10px;background:rgba(0,200,100,0.9);color:white;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold;z-index:1000;opacity:0;transition:opacity 0.3s;';
     document.body.appendChild(indicator);
   }
-  indicator.textContent = 'ðŸ’¾ Saved!';
+  indicator.textContent = 'ðŸ'3⁄4 Saved!';
   indicator.style.opacity = '1';
   setTimeout(() => indicator.style.opacity = '0', 1500);
 }
@@ -418,11 +504,12 @@ function startGame() {
   canvas.addEventListener('touchstart', onTouchStart, { passive: false });
 
   load();
+  initCreatures();
   updateHUD();
   renderGrimoire();
 
   if (!localStorage.getItem('nemo-tutorial-done')) { tutorialStep = 0; showTutorial(); }
-  
+
   // PHASE 2: WASD Input
   window.addEventListener('keydown', (e) => {
     state.keys[e.key.toLowerCase()] = true;
@@ -430,11 +517,11 @@ function startGame() {
   window.addEventListener('keyup', (e) => {
     state.keys[e.key.toLowerCase()] = false;
   });
-  
+
   // Auto-Save regelmaessig (60s) + bei Page-Close
   setInterval(() => save(), 60000);
   window.addEventListener('beforeunload', () => save());
-  
+
   loop();
 }
 
@@ -452,17 +539,17 @@ function loop() {
 function update() {
   // PHASE 2: Avatar Bewegung
   const avatar = state.avatar;
-  
-  // PHASE 3: Animation time â€” fÃ¼r "Symbole atmen"
+
+  // PHASE 3: Animation time â€" fÃ1⁄4r "Symbole atmen"
   state.animTime += 0.016; // ~60fps
   avatar.isMoving = false;
   avatar.direction.x = 0;
   avatar.direction.y = 0;
-  
+
   // Sprint check (Shift)
   const isSprinting = state.keys['shift'];
   const currentSpeed = isSprinting ? avatar.speed * 2 : avatar.speed;
-  
+
   if (state.keys['w'] || state.keys['arrowup']) {
     avatar.direction.y = -1;
     avatar.isMoving = true;
@@ -479,53 +566,54 @@ function update() {
     avatar.direction.x = 1;
     avatar.isMoving = true;
   }
-  
+
   // Normalize diagonal movement
   if (avatar.isMoving) {
     const len = Math.sqrt(avatar.direction.x ** 2 + avatar.direction.y ** 2);
     avatar.x += (avatar.direction.x / len) * currentSpeed;
     avatar.y += (avatar.direction.y / len) * currentSpeed;
-    
+
     // Clamp to world bounds
     avatar.x = Math.max(50, Math.min(state.world.width - 50, avatar.x));
     avatar.y = Math.max(50, Math.min(state.world.height - 50, avatar.y));
   }
-  
+
   // Camera folgen (smooth)
   const targetCamX = avatar.x - canvas.width / 2;
   const targetCamY = avatar.y - canvas.height / 2;
   state.camera.x += (targetCamX - state.camera.x) * 0.1;
   state.camera.y += (targetCamY - state.camera.y) * 0.1;
-  
+
   // Camera clamp to world
   state.camera.x = Math.max(0, Math.min(state.world.width - canvas.width, state.camera.x));
   state.camera.y = Math.max(0, Math.min(state.world.height - canvas.height, state.camera.y));
-  
+
   // Sprint glow effect
   avatar.isSprinting = isSprinting && avatar.isMoving;
-  
+
   // Symbol floating animation (in Welt-Koordinaten)
   const time = Date.now() * 0.001;
-  // PHASE 6: Progressive World â€” filter by level
+  // PHASE 6: Progressive World â€" filter by level
   const maxSymbols = state.getMaxSymbols(state.level);
   for (let i = 0; i < maxSymbols; i++) {
     const s = SYMBOLS[i];
     s.displayY = s.y + Math.sin(time + i) * 5; // 5px floating
   }
-  
-  // PHASE 2: Auto-Collect wenn Avatar ein Symbol berÃ¼hrt
+
+  // PHASE 2: Auto-Collect wenn Avatar ein Symbol berÃ1⁄4hrt
   if (avatar.isMoving) {
     SYMBOLS.forEach(s => {
       if (state.collected.includes(s.id)) return;
-      
+
       const sx = s.x;
       const sy = s.displayY;
       const ax = avatar.x;
       const ay = avatar.y;
       const dist = Math.sqrt((sx - ax) ** 2 + (sy - ay) ** 2);
-      
+
       if (dist < state.collectRadius) {
         state.collected.push(s.id);
+        playSound('collect');
         state.xp += 2;
         showRecipeLog(`ðŸœ ${s.glyph} ${s.name} eingesammelt! +2 XP`);
         checkLevelUp();
@@ -537,7 +625,7 @@ function update() {
       }
     });
   }
-  
+
   // PHASE 3: Particles updaten
   state.particles = state.particles.filter(p => {
     p.x += p.vx;
@@ -546,6 +634,189 @@ function update() {
     p.life -= 0.025;
     return p.life > 0;
   });
+
+  // PHASE 10: Kreaturen updaten
+  updateCreatures();
+}
+
+// ============================================
+// PHASE 10: AI/KREATUREN
+// Pattern 1: "Wanderer" - folgt dem Spieler oder patrouilliert
+// ============================================
+
+function initCreatures() {
+  // 3 Kreaturen im Level - verschiedene Typen
+  state.creatures = [
+    {
+      id: 'c1',
+      name: 'Schattenwanderer',
+      glyph: '👤',
+      x: 800, y: 600,
+      targetX: 800, targetY: 600,
+      vx: 0, vy: 0,
+      speed: 1.5,
+      mode: 'patrol', // 'patrol' oder 'chase'
+      patrolCenter: { x: 800, y: 600 },
+      patrolRadius: 200,
+      patrolAngle: 0,
+      lastSeen: 0,
+      state: 'idle', // idle, moving, chasing
+      pulsePhase: 0,
+      color: 'rgba(155, 89, 182, 0.8)'
+    },
+    {
+      id: 'c2',
+      name: 'Feuergeist',
+      glyph: '🔥',
+      x: 1500, y: 400,
+      targetX: 1500, targetY: 400,
+      vx: 0, vy: 0,
+      speed: 2,
+      mode: 'patrol',
+      patrolCenter: { x: 1500, y: 400 },
+      patrolRadius: 150,
+      patrolAngle: Math.PI,
+      lastSeen: 0,
+      state: 'idle',
+      pulsePhase: Math.PI,
+      color: 'rgba(231, 76, 60, 0.8)'
+    },
+    {
+      id: 'c3',
+      name: 'Frostwanderer',
+      glyph: '❄️',
+      x: 400, y: 1200,
+      targetX: 400, targetY: 1200,
+      vx: 0, vy: 0,
+      speed: 1,
+      mode: 'chase', // this one CHASES the player!
+      patrolCenter: { x: 400, y: 1200 },
+      patrolRadius: 300,
+      patrolAngle: 0,
+      lastSeen: 0,
+      state: 'idle',
+      pulsePhase: Math.PI / 2,
+      color: 'rgba(52, 152, 219, 0.8)'
+    }
+  ];
+  state.creaturesFound = 0;
+}
+
+function updateCreatures() {
+  if (!state.creatures) return;
+
+  const avatarX = state.avatar.x;
+  const avatarY = state.avatar.y;
+  const chaseRange = 250; // Wenn Spieler näher ist...
+  const catchRange = 40;  // ...und dann
+
+  for (const c of state.creatures) {
+    const dx = avatarX - c.x;
+    const dy = avatarY - c.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Pulsing Animation
+    c.pulsePhase += 0.05;
+
+    if (c.mode === 'chase') {
+      // CHASE mode: Folgt dem Spieler wenn in Reichweite
+      if (dist < chaseRange) {
+        c.state = 'chasing';
+        c.targetX = avatarX;
+        c.targetY = avatarY;
+        c.lastSeen = Date.now();
+      } else {
+        c.state = 'idle';
+        // Zurück zum Patrol-Zentrum
+        const homeDx = c.patrolCenter.x - c.x;
+        const homeDy = c.patrolCenter.y - c.y;
+        const homeDist = Math.sqrt(homeDx * homeDx + homeDy * homeDy);
+        if (homeDist > 10) {
+          c.targetX = c.patrolCenter.x;
+          c.targetY = c.patrolCenter.y;
+        }
+      }
+    } else {
+      // PATROL mode: Patrouilliert, ignoriert Spieler
+      c.state = 'idle';
+      c.patrolAngle += 0.01;
+      c.targetX = c.patrolCenter.x + Math.cos(c.patrolAngle) * c.patrolRadius;
+      c.targetY = c.patrolCenter.y + Math.sin(c.patrolAngle) * c.patrolRadius;
+    }
+
+    // Movement towards target
+    const moveDx = c.targetX - c.x;
+    const moveDy = c.targetY - c.y;
+    const moveDist = Math.sqrt(moveDx * moveDx + moveDy * moveDy);
+
+    if (moveDist > 5) {
+      c.vx = (moveDx / moveDist) * c.speed;
+      c.vy = (moveDy / moveDist) * c.speed;
+      c.x += c.vx;
+      c.y += c.vy;
+      c.state = c.state === 'chasing' ? 'moving' : 'moving';
+    } else {
+      c.vx *= 0.8;
+      c.vy *= 0.8;
+    }
+
+    // Collision mit Avatar (Catch!)
+    if (dist < catchRange && c.mode === 'chase') {
+      // Spieler wird "gefangen" - kurze Verlangsamung als Effekt
+      state.avatar.speed = state.avatar.baseSpeed * 0.5;
+      setTimeout(() => { state.avatar.speed = state.avatar.baseSpeed; }, 2000);
+      showRecipeLog(`⚠️ ${c.name} hat dich erwischt! Langsamer für 2s.`);
+
+      // Kreatur "entschuldigt sich" und geht weg
+      c.targetX = c.patrolCenter.x;
+      c.targetY = c.patrolCenter.y;
+    }
+  }
+}
+
+function drawCreatures() {
+  if (!state.creatures) return;
+
+  for (const c of state.creatures) {
+    const screenX = c.x - state.camera.x;
+    const screenY = c.y - state.camera.y;
+
+    // Nur zeichnen wenn auf dem Bildschirm
+    if (screenX < -100 || screenX > canvas.width + 100 ||
+        screenY < -100 || screenY > canvas.height + 100) continue;
+
+    // Glow-Effekt (pulsing)
+    const glowIntensity = 0.3 + Math.sin(c.pulsePhase) * 0.2;
+    ctx.shadowColor = c.color;
+    ctx.shadowBlur = 15 + Math.sin(c.pulsePhase) * 5;
+
+    // Creature zeichnen
+    ctx.font = '28px Arial';
+    ctx.fillText(c.glyph, screenX - 14, screenY + 10);
+
+    ctx.shadowBlur = 0;
+
+    // Name über Kreatur (wenn nah)
+    const avatarX = state.avatar.x;
+    const avatarY = state.avatar.y;
+    const dist = Math.sqrt((avatarX - c.x) ** 2 + (avatarY - c.y) ** 2);
+
+    if (dist < 200) {
+      ctx.font = '10px Arial';
+      ctx.fillStyle = c.state === 'chasing' ? '#e74c3c' : '#9b59b6';
+      ctx.textAlign = 'center';
+      ctx.fillText(c.name, screenX, screenY - 20);
+      ctx.textAlign = 'left';
+
+      // Modus anzeigen
+      if (c.state === 'chasing') {
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillText('👁️ JAGD!', screenX, screenY - 8);
+      }
+    }
+
+    ctx.fillStyle = '#c9b896';
+  }
 }
 
 function draw() {
@@ -562,7 +833,7 @@ function draw() {
   const gridSize = 100;
   const offsetX = -state.camera.x % gridSize;
   const offsetY = -state.camera.y % gridSize;
-  
+
   for (let x = offsetX; x < canvas.width; x += gridSize) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
@@ -575,27 +846,27 @@ function draw() {
     ctx.lineTo(canvas.width, y);
     ctx.stroke();
   }
-  
+
   // World boundary
   ctx.strokeStyle = 'rgba(231, 76, 60, 0.3)';
   ctx.lineWidth = 3;
   ctx.strokeRect(-state.camera.x, -state.camera.y, state.world.width, state.world.height);
-  
-  // Mini-Map (World-Koordinaten fÃ¼r Symbole)
+
+  // Mini-Map (World-Koordinaten fÃ1⁄4r Symbole)
   const miniMapX = canvas.width - 160;
   const miniMapY = 10;
   const miniMapW = 150;
   const miniMapH = 150;
-  
+
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
   ctx.fillRect(miniMapX, miniMapY, miniMapW, miniMapH);
   ctx.strokeStyle = '#4ecdc4';
   ctx.lineWidth = 1;
   ctx.strokeRect(miniMapX, miniMapY, miniMapW, miniMapH);
-  
+
   const scaleX = miniMapW / state.world.width;
   const scaleY = miniMapH / state.world.height;
-  
+
   // Symbole in Mini-Map (nur aktuelle Level-Symbole)
   const miniMax = state.getMaxSymbols(state.level);
   SYMBOLS.slice(0, miniMax).forEach(s => {
@@ -607,7 +878,7 @@ function draw() {
     ctx.arc(mx, my, 3, 0, Math.PI * 2);
     ctx.fill();
   });
-  
+
   // Avatar in Mini-Map
   ctx.fillStyle = state.avatar.color;
   ctx.beginPath();
@@ -618,8 +889,8 @@ function draw() {
   );
   ctx.fill();
 
-  // draw symbols (mit Camera-Offset fÃ¼r Welt-Koordinaten)
-  // PHASE 6: Progressive World â€” nur Symbole des aktuellen BIOMES
+  // draw symbols (mit Camera-Offset fÃ1⁄4r Welt-Koordinaten)
+  // PHASE 6: Progressive World â€" nur Symbole des aktuellen BIOMES
   const maxSym = state.getMaxSymbols(state.level);
   // Filter: Biome-spezifische Symbole oder alle wenn Biome nicht aktiv
   const visSym = SYMBOLS.filter(s => {
@@ -629,14 +900,14 @@ function draw() {
   visSym.forEach(s => {
     const x = s.x - state.camera.x;
     const y = s.displayY - state.camera.y;
-    
+
     // Nur zeichnen wenn auf Screen sichtbar
     if (x < -50 || x > canvas.width + 50 || y < -50 || y > canvas.height + 50) return;
-    
+
     const collected = state.collected.includes(s.id);
     const time = state.animTime;
 
-    // PHASE 3: Symbole atmen â€” Animation berechnen
+    // PHASE 3: Symbole atmen â€" Animation berechnen
     const breathPhase = Math.sin(time * 1.5 + s.id.charCodeAt(0) * 0.3); // langsames Atmen
     const pulsePhase = Math.sin(time * 3 + s.id.charCodeAt(0) * 0.5);   // schnelles Pulsieren
     const floatY = breathPhase * 4; // 4px Auf/Ab
@@ -651,8 +922,8 @@ function draw() {
     // PHASE 3: Animiertes Zeichnen
     const drawX = x;
     const drawY = y + floatY;
-    
-    // Glow / Schatten fÃ¼r gesammelte Symbole
+
+    // Glow / Schatten fÃ1⁄4r gesammelte Symbole
     if (collected) {
       ctx.shadowColor = s.color;
       ctx.shadowBlur = glow;
@@ -678,36 +949,39 @@ function draw() {
     ctx.fillText(s.name, x, y + 40 + floatY);
   });
 
+  // PHASE 10: Kreaturen zeichnen (nach Symbolen, vor Avatar)
+  drawCreatures();
+
   // PHASE 2: Avatar zeichnen (in Welt-Koordinaten, mit Camera-Offset)
-  // PHASE 3+: Avatar SKIN — Aussehen ändert sich mit Biome!
+  // PHASE 3+: Avatar SKIN - Aussehen ändert sich mit Biome!
   const avatar = state.avatar;
   const ax = avatar.x - state.camera.x;
   const ay = avatar.y - state.camera.y;
-  
+
   // Avatar-Farbe basierend auf aktuellem Biome
   const biome = state.biomes[state.currentBiome];
   const avatarColor = avatar.isSprinting ? '#ffa500' : biome.color;
   const glowColor = avatar.isSprinting ? '#fff' : biome.color;
-  
+
   // Sprint glow intensiver
   const glowIntensity = avatar.isSprinting ? 40 : (avatar.isMoving ? 25 : 15);
   const avatarSize = avatar.isSprinting ? avatar.size * 1.2 : avatar.size;
-  
+
   ctx.save();
   ctx.shadowColor = glowColor;
   ctx.shadowBlur = glowIntensity;
-  
-  // Körper (Rechteck) — jetzt mit Biome-Farbe
+
+  // Körper (Rechteck) - jetzt mit Biome-Farbe
   ctx.fillStyle = avatarColor;
   const bodyWidth = avatarSize * 1.4;
   const bodyHeight = avatarSize * 1.8;
   ctx.fillRect(ax - bodyWidth/2, ay - bodyHeight/2 + avatarSize*0.3, bodyWidth, bodyHeight);
-  
-  // Kopf (Kreis) — mit Biom-Outline
+
+  // Kopf (Kreis) - mit Biom-Outline
   ctx.beginPath();
   ctx.arc(ax, ay - bodyHeight/2 + avatarSize*0.3, avatarSize * 0.5, 0, Math.PI * 2);
   ctx.fill();
-  
+
   // Biom-Symbol über dem Kopf
   const biomeIcons = { IGNIS: '🔥', AQUA: '💧', TERRA: '🌍', AETHER: '✨' };
   ctx.font = '16px serif';
@@ -715,14 +989,14 @@ function draw() {
   ctx.textAlign = 'center';
   ctx.shadowBlur = 0;
   ctx.fillText(biomeIcons[state.currentBiome], ax, ay - avatarSize * 1.8);
-  
+
   // Weißer Kern
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(ax, ay - bodyHeight/2 + avatarSize*0.3, avatarSize * 0.25, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  
+
   // Richtung-Indikator (Dreieck das in Bewegungsrichtung zeigt)
   if (avatar.isMoving && (avatar.direction.x !== 0 || avatar.direction.y !== 0)) {
     const angle = Math.atan2(avatar.direction.y, avatar.direction.x);
@@ -738,7 +1012,7 @@ function draw() {
     ctx.fill();
     ctx.restore();
   }
-  
+
   // Sprint indicator
   if (avatar.isSprinting) {
     ctx.fillStyle = '#ffa500';
@@ -746,20 +1020,20 @@ function draw() {
     ctx.textAlign = 'center';
     ctx.fillText('âš¡ SPRINT', ax, ay - avatar.size * 2.5);
   }
-  
+
   // Avatar Position im HUD anzeigen (Welt-Koordinaten)
   ctx.fillStyle = '#c9b896';
   ctx.font = '12px Courier New';
   ctx.textAlign = 'left';
   ctx.fillText(`Position: ${avatar.x.toFixed(0)}, ${avatar.y.toFixed(0)} | Welt: ${state.world.width}x${state.world.height}`, 10, canvas.height - 10);
-  
+
   // PHASE 3: Particles zeichnen (BIOME-AWARE)
   state.particles.forEach(p => {
     const px = p.x - state.camera.x;
     const py = p.y - state.camera.y;
     ctx.globalAlpha = p.life;
     ctx.fillStyle = p.color || state.biomes[state.currentBiome].particleColor;
-    
+
     // BIOME-spezifische Partikel-Formen
     const biome = state.currentBiome;
     if (biome === 'IGNIS') {
@@ -788,7 +1062,7 @@ function draw() {
     }
   });
   ctx.globalAlpha = 1;
-  
+
   // draw selection line
   if (state.selected) {
     const sel = SYMBOLS.find(s => s.id === state.selected);
@@ -870,13 +1144,14 @@ function handleSymbolClick(s) {
 
       if (isNew) {
         state.discoveredRecipes.push(recipe);
+        playSound('combine');
         state.xp += 5 + comboBonus;
         state.score += 10 + comboBonus;
         state.combo++;
-        
+
         // PHASE 3: NEUES SYMBOL IN WELT SPAWNEN!
         spawnResultSymbol(recipe.result, s);
-        
+
         if (state.timerActive) {
           state.dailyDone++;
           if (state.dailyDone >= state.dailyTarget) {
@@ -886,12 +1161,12 @@ function handleSymbolClick(s) {
             showRecipeLog(`ðŸ† TAGES-CHALLENGE GESCHAFFT! +50 Bonus!`);
           }
         }
-        showRecipeLog(`âœ¨ ${recipe.desc} NEU! +${5 + comboBonus} XP ${comboBonus ? `(+${comboBonus} Combo!)` : ''}`);
+        showRecipeLog(`âœ ̈ ${recipe.desc} NEU! +${5 + comboBonus} XP ${comboBonus ? `(+${comboBonus} Combo!)` : ''}`);
         checkLevelUp();
       } else {
         state.xp += 1 + Math.floor(comboBonus / 2);
         state.score += 2;
-        showRecipeLog(`ðŸ”„ Schon entdeckt. +${1 + Math.floor(comboBonus / 2)} XP`);
+        showRecipeLog(`ðŸ"" Schon entdeckt. +${1 + Math.floor(comboBonus / 2)} XP`);
       }
       state.lastCombineTime = now;
     } else {
@@ -916,14 +1191,14 @@ function startTimer() {
   state.timerActive = true;
   state.timeLeft = 60;
   state.dailyDone = 0;
-  showRecipeLog(`â±ï¸ 60-Sekunden-Challenge! Finde ${state.dailyTarget} neue Rezepte!`);
+  showRecipeLog(`â±ï ̧ 60-Sekunden-Challenge! Finde ${state.dailyTarget} neue Rezepte!`);
   state.timerInterval = setInterval(() => {
     state.timeLeft--;
     updateHUD();
     if (state.timeLeft <= 0) {
       clearInterval(state.timerInterval);
       state.timerActive = false;
-      showRecipeLog(`â±ï¸ Zeit vorbei! ${state.dailyDone}/${state.dailyTarget} geschafft.`);
+      showRecipeLog(`â±ï ̧ Zeit vorbei! ${state.dailyDone}/${state.dailyTarget} geschafft.`);
       updateHUD();
     }
   }, 1000);
@@ -938,6 +1213,7 @@ function checkLevelUp() {
     const newWorldSize = state.getWorldSize(state.level);
     state.world.width = newWorldSize;
     state.world.height = newWorldSize;
+    playSound('levelUp');
     showRecipeLog(`ðŸŽ‰ Level ${state.level} erreicht! Neue Welt: ${newWorldSize}x${newWorldSize}`);
     save(); // Auto-Save bei Level-Up
   }
@@ -954,14 +1230,14 @@ function updateHUD() {
   document.getElementById('hud-name').textContent = state.name;
   document.getElementById('hud-level').textContent = state.level;
   document.getElementById('hud-symbols').textContent = state.collected.length + '/' + SYMBOLS.length;
-  
+
   // Score + Combo anzeigen
   let extra = '';
   if (state.score > 0) extra += ` | ðŸ† ${state.score}`;
   if (state.combo > 1) extra += ` | âš¡${state.combo}x`;
-  if (state.timerActive) extra += ` | â±ï¸ ${state.timeLeft}s`;
-  if (state.highScore > 0) extra += ` | â˜… ${state.highScore}`;
-  
+  if (state.timerActive) extra += ` | â±ï ̧ ${state.timeLeft}s`;
+  if (state.highScore > 0) extra += ` | â ̃... ${state.highScore}`;
+
   const symbolsEl = document.getElementById('hud-symbols');
   symbolsEl.textContent = state.collected.length + '/' + SYMBOLS.length + extra;
 }
@@ -976,25 +1252,27 @@ function switchBiome() {
   const biomes = ['IGNIS', 'AQUA', 'TERRA', 'AETHER'];
   const idx = biomes.indexOf(state.currentBiome);
   state.currentBiome = biomes[(idx + 1) % biomes.length];
-  
+
   // Update HUD indicator
   const indicator = document.getElementById('biome-indicator');
   const biome = state.biomes[state.currentBiome];
   indicator.textContent = biome.name;
   indicator.style.color = biome.color;
-  
+
   // Update background
   const canvas = document.getElementById('canvas');
   document.body.style.background = `linear-gradient(135deg, ${biome.bgGrad[0]}, ${biome.bgGrad[1]})`;
-  
+
   showRecipeLog('🌍 Biome gewechselt: ' + biome.name);
 }
 
 function renderGrimoire() {
   const grid = document.getElementById('grimoire-grid');
   grid.innerHTML = '';
+  const query = (document.getElementById('grimoire-search')?.value || '').toLowerCase();
 
   SYMBOLS.forEach(s => {
+    if (query && !s.name.toLowerCase().includes(query) && !s.desc.toLowerCase().includes(query) && !s.biome.toLowerCase().includes(query)) return;
     const collected = state.collected.includes(s.id);
     const recipe = state.discoveredRecipes.find(r => r.result === s.id);
 
@@ -1005,7 +1283,7 @@ function renderGrimoire() {
       <div class="glyph">${s.glyph}</div>
       <div class="name">${s.name}</div>
       <div class="desc">${s.desc}</div>
-      ${recipe ? '<div style="color:#4ecdc4;margin-top:0.5em;font-size:0.8em;">âœ¨ Rezept!</div>' : ''}
+      ${recipe ? '<div style="color:#4ecdc4;margin-top:0.5em;font-size:0.8em;">âœ ̈ Rezept!</div>' : ''}
     `;
     grid.appendChild(card);
   });
@@ -1016,9 +1294,9 @@ const HINTS = [
   { check: () => true,                                    hint: 'Klicke auf Symbole in der Welt um sie zu sammeln.' },
   { check: () => state.collected.length > 0 && !state.discoveredRecipes.length, hint: 'Du hast Symbole gesammelt. Versuche zwei davon im Grimoire zu kombinieren!' },
   { check: () => state.collected.includes('ignis') && state.collected.includes('aqua') && !state.discoveredRecipes.find(r => r.result === 'vita'), hint: 'Ignis (Feuer) und Aqua (Wasser) ergeben zusammen etwas Neues...' },
-  { check: () => state.collected.includes('terra') && state.collected.includes('aqua') && !state.discoveredRecipes.find(r => r.result === 'ignis'), hint: 'Terra (Erde) und Wasser... manchmal entzÃ¼ndet sich etwas.' },
+  { check: () => state.collected.includes('terra') && state.collected.includes('aqua') && !state.discoveredRecipes.find(r => r.result === 'ignis'), hint: 'Terra (Erde) und Wasser... manchmal entzÃ1⁄4ndet sich etwas.' },
   { check: () => state.collected.includes('aether') && state.collected.includes('ignis') && !state.discoveredRecipes.find(r => r.result === 'terra'), hint: 'Aether (Geist) und Feuer... der Geist manifestiert sich!' },
-  { check: () => state.collected.includes('vita') && state.collected.includes('terra') && !state.discoveredRecipes.find(r => r.result === 'aether'), hint: 'Vita (Leben) und Terra (Erde)... alles kehrt zurÃ¼ck.' },
+  { check: () => state.collected.includes('vita') && state.collected.includes('terra') && !state.discoveredRecipes.find(r => r.result === 'aether'), hint: 'Vita (Leben) und Terra (Erde)... alles kehrt zurÃ1⁄4ck.' },
   { check: () => state.discoveredRecipes.length > 0, hint: 'Du hast schon ein Rezept entdeckt! Versuche mehr Symbole zu sammeln und zu kombinieren.' },
 ];
 
@@ -1026,7 +1304,7 @@ function showHint() {
   // Find first matching hint
   const hint = HINTS.find(h => h.check());
   if (hint) {
-    showRecipeLog('ðŸ’¡ ' + hint.hint);
+    showRecipeLog('ðŸ'¡ ' + hint.hint);
   }
 }
 
@@ -1034,23 +1312,23 @@ function showHint() {
 function spawnResultSymbol(resultId, sourceSymbol) {
   const resultSymbol = SYMBOLS.find(s => s.id === resultId);
   if (!resultSymbol) return;
-  
+
   // Bereits in der Welt?
   if (state.collected.includes(resultId)) {
-    // Symbol zurÃ¼cksetzen damit es wieder spawnt
+    // Symbol zurÃ1⁄4cksetzen damit es wieder spawnt
     state.collected = state.collected.filter(id => id !== resultId);
   }
-  
+
   // Spawn Position: Random im Umkreis um Player
   const angle = Math.random() * Math.PI * 2;
   const dist = 150 + Math.random() * 250;
   const nx = state.avatar.x + Math.cos(angle) * dist;
   const ny = state.avatar.y + Math.sin(angle) * dist;
-  
+
   // Clamp to world
   const x = Math.max(100, Math.min(state.world.width - 100, nx));
   const y = Math.max(100, Math.min(state.world.height - 100, ny));
-  
+
   // Particles burst!
   for (let i = 0; i < 25; i++) {
     state.particles.push({
@@ -1063,11 +1341,11 @@ function spawnResultSymbol(resultId, sourceSymbol) {
       size: 4 + Math.random() * 6
     });
   }
-  
+
   // Neues Symbol in die Welt setzen
   resultSymbol.x = x;
   resultSymbol.y = y;
-  
+
   // Message
   showRecipeLog(`ðŸŒŸ ${resultSymbol.glyph} ${resultSymbol.name} wurde geboren! Finde es in der Welt!`);
 }
@@ -1081,13 +1359,13 @@ if (localStorage.getItem('nemos_alchemie_save')) {
 const TUTORIAL_STEPS = [
   {
     title: 'Willkommen, Alchemist',
-    text: 'Du betrittst die Welt von Nemos Alchemie â€” eine Welt voller Symbole, Magie und Geheimnisse.',
-    emoji: 'ðŸ”±'
+    text: 'Du betrittst die Welt von Nemos Alchemie â€" eine Welt voller Symbole, Magie und Geheimnisse.',
+    emoji: 'ðŸ"±'
   },
   {
     title: 'Deine Mission',
     text: 'Sammle Symbole in der Welt. Probiere verschiedene Kombinationen aus. Entdecke neue Rezepte und werde der grÃ¶sste Alchemist!',
-    emoji: 'âš—ï¸'
+    emoji: 'âš-ï ̧'
   },
   {
     title: 'Steuerung',
@@ -1102,7 +1380,7 @@ const TUTORIAL_STEPS = [
   {
     title: 'Grimoire',
     text: 'Deine Entdeckungen werden im Grimoire gespeichert. Je hÃ¶her dein Level, desto mehr Symbole!',
-    emoji: 'ðŸ“–'
+    emoji: 'ðŸ"-'
   }
 ];
 let tutorialStep = 0;
