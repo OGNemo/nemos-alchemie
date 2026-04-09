@@ -54,6 +54,23 @@ body {
   border-color: rgba(201, 184, 150, 0.7);
   box-shadow: 0 0 20px rgba(201, 184, 150, 0.2);
 }
+#start .hook-intro {
+  font-size: 1.8em;
+  color: #f1c40f;
+  margin-bottom: 0.3em;
+  text-shadow: 0 0 20px rgba(241, 196, 79, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+#start .hook-sub {
+  font-size: 1.1em;
+  color: #9b59b6;
+  margin-bottom: 2em;
+  font-style: italic;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+}
 #game {
   display: none;
   position: relative;
@@ -147,9 +164,10 @@ canvas {
 <body>
 
 <div id="start">
-  <h1>ðŸ”±</h1>
+  <div class="hook-intro">✦ Deine Symbole sind ALIVE ✦</div>
+  <div class="hook-sub">Sie erinnern sich an dich.</div>
   <input type="text" id="player-name" placeholder="Dein Name" value="Alchemist">
-  <button onclick="startGame()">Betrete die Alchemie</button>
+  <button onclick="startGame()">⚗️ Erwecke die Symbole</button>
 </div>
 
 <!-- TUTORIAL MODAL -->
