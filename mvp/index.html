@@ -189,6 +189,7 @@ canvas {
 
 <div id="grimoire">
   <h2>ðŸ“– Grimoire</h2>
+  <input type="text" id="grimoire-search" placeholder="Suche..." oninput="renderGrimoire()" style="width:100%;padding:8px;margin-bottom:10px;border:1px solid #4ecdc4;border-radius:4px;background:#1a1a2e;color:#fff;font-size:14px;">
   <div id="grimoire-grid"></div>
   <button id="close-grimoire" onclick="toggleGrimoire()">Schliessen</button>
 </div>
@@ -1052,8 +1053,10 @@ function switchBiome() {
 function renderGrimoire() {
   const grid = document.getElementById('grimoire-grid');
   grid.innerHTML = '';
+  const query = (document.getElementById('grimoire-search')?.value || '').toLowerCase();
 
   SYMBOLS.forEach(s => {
+    if (query && !s.name.toLowerCase().includes(query) && !s.desc.toLowerCase().includes(query) && !s.biome.toLowerCase().includes(query)) return;
     const collected = state.collected.includes(s.id);
     const recipe = state.discoveredRecipes.find(r => r.result === s.id);
 
