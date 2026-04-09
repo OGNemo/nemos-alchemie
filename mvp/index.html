@@ -181,6 +181,7 @@ canvas {
     <div class="symbols">Symbole: <span id="hud-symbols">0</span></div>
     <div id="biome-indicator" style="margin-top:5px;font-size:14px;color:#ff6b35;">🔥 IGNIS</div>
     <button onclick="switchBiome()" style="margin-top:5px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:3px 8px;cursor:pointer;font-size:11px;border-radius:3px;">🌍 Biome wechseln</button>
+    <div style="margin-top:8px;font-size:11px;color:#888;">🔊 <input type="range" id="volumeslider" min="0" max="100" value="15" oninput="setVolume(this.value/100)" style="width:60px;vertical-align:middle;"></div>
   </div>
   <button id="grimoire-btn" onclick="toggleGrimoire()">ðŸ“– Grimoire</button>
   <button id="hint-btn" onclick="showHint()" style="position:fixed;top:60px;right:20px;background:rgba(241,196,79,0.2);border:1px solid rgba(241,196,79,0.5);color:#f1c40f;padding:0.4em 0.8em;cursor:pointer;border-radius:4px;font-family:Georgia,serif;">ðŸ’¡ Tipp</button>
@@ -410,6 +411,19 @@ function playSound(type) {
         break;
     }
   } catch(e) {}
+}
+
+function setVolume(v) {
+  masterVolume = v;
+  localStorage.setItem('nemo-volume', v);
+}
+
+// Load saved volume
+const savedVol = localStorage.getItem('nemo-volume');
+if (savedVol !== null) {
+  masterVolume = parseFloat(savedVol);
+  const slider = document.getElementById('volumeslider');
+  if (slider) slider.value = savedVol * 100;
 }
 
 function seededRandom() {
