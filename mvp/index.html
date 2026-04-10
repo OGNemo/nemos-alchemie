@@ -319,16 +319,22 @@ const state = {
   dailyTarget: 5,
   dailyDone: false,
   highScore: 0,
+  gameOver: false,
   // PHASE 2: Avatar
   avatar: {
     x: 1000, // Welt-Koordinaten (2000x2000 Welt)
     y: 1000,
     size: 20,
     speed: 5, // Pixel pro Frame
+    baseSpeed: 5, // Basis-Geschwindigkeit
     color: '#ff6b35',
     isMoving: false,
     isSprinting: false,
     direction: { x: 0, y: 0 },
+    // PHASE 10: HP-System
+    hp: 3,
+    maxHp: 3,
+    invincible: false, // Unverwundbar nach Treffer
   },
   camera: {
     x: 0, // Camera offset = avatar position - screen center
@@ -513,6 +519,10 @@ function startGame() {
   // PHASE 2: WASD Input
   window.addEventListener('keydown', (e) => {
     state.keys[e.key.toLowerCase()] = true;
+    // PHASE 10: R = Restart after Game Over
+    if (e.key.toLowerCase() === 'r' && state.gameOver) {
+      restartGame();
+    }
   });
   window.addEventListener('keyup', (e) => {
     state.keys[e.key.toLowerCase()] = false;
@@ -762,12 +772,24 @@ function updateCreatures() {
 
     // Collision mit Avatar (Catch!)
     if (dist < catchRange && c.mode === 'chase') {
-      // Spieler wird "gefangen" - kurze Verlangsamung als Effekt
-      state.avatar.speed = state.avatar.baseSpeed * 0.5;
-      setTimeout(() => { state.avatar.speed = state.avatar.baseSpeed; }, 2000);
-      showRecipeLog(`⚠️ ${c.name} hat dich erwischt! Langsamer für 2s.`);
+      // PHASE 10: HP-System - nur Schaden wenn nicht unverwundbar
+      if (!state.avatar.invincible) {
+        state.avatar.hp -= 1;
+        state.avatar.invincible = true;
+        playSound('hurt');
+        showRecipeLog(`💥 ${c.name} trifft dich! HP: ${state.avatar.hp}/${state.avatar.maxHp}`);
+        
+        // 2 Sekunden Unverwundbarkeit
+        setTimeout(() => { state.avatar.invincible = false; }, 2000);
+        
+        // Bei 0 HP - Game Over
+        if (state.avatar.hp <= 0) {
+          showRecipeLog('💀 GAME OVER - Druecke R zum Neustart');
+          state.gameOver = true;
+        }
+      }
 
-      // Kreatur "entschuldigt sich" und geht weg
+      // Kreatur geht weg
       c.targetX = c.patrolCenter.x;
       c.targetY = c.patrolCenter.y;
     }
@@ -1224,6 +1246,21 @@ function showRecipeLog(msg) {
   el.textContent = msg;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// PHASE 10: Restart after Game Over
+function restartGame() {
+  state.avatar.hp = state.avatar.maxHp;
+  state.avatar.invincible = false;
+  state.avatar.x = 1000;
+  state.avatar.y = 1000;
+  state.gameOver = false;
+  state.collected = [];
+  state.score = 0;
+  state.level = 1;
+  state.xp = 0;
+  showRecipeLog('Neues Spiel gestartet!');
+  updateHUD();
 }
 
 function updateHUD() {
